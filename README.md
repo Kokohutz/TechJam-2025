@@ -14,8 +14,8 @@
 1. **Clone the project to your local machine:**
    
    ```bash
-   git clone https://github.com/your-username/your-project-name.git
-   cd your-project-name
+   git clone https://github.com/Kokohutz/app-mbc_minions.git
+   cd app-mbc_minions
    ```
 1. **Install dependencies:**
    
