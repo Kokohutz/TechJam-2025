@@ -1,26 +1,3 @@
-<<<<<<< HEAD
-## Rspeedy project
-
-This is a ReactLynx project bootstrapped with `create-rspeedy`.
-
-## Getting Started
-
-First, install the dependencies:
-
-```bash
-pnpm install
-```
-
-Then, run the development server:
-
-```bash
-pnpm run dev
-```
-
-Scan the QRCode in the terminal with your LynxExplorer App to see the result.
-
-You can start editing the page by modifying `src/App.tsx`. The page auto-updates as you edit the file.
-=======
 # 2025 TechJam Hackathon
 
 ## Getting Started
@@ -28,17 +5,16 @@ You can start editing the page by modifying `src/App.tsx`. The page auto-updates
 ### Prerequisites
 
 - Git installed on your machine
-- [Node.js](https://nodejs.org/) (version X.X or higher)
+- [Node.js](https://nodejs.org/)
 - [Your package manager] (npm/yarn/pnpm)
-- [Any other dependencies specific to your project]
 
 ### Clone the Repository
 
 1. **Clone the project to your local machine:**
    
    ```bash
-   git clone https://github.com/Kokohutz/app-mbc_minions.git
-   cd app-mbc_minions
+   git clone https://github.com/Kokohutz/TechJam-2025.git
+   cd TechJam-2025
    ```
 1. **Install dependencies:**
    
@@ -261,4 +237,3 @@ git push origin --delete old-branch-name
 1. Submit a pull request
 
 Thank you for contributing to our project! 🚀
->>>>>>> 1a4483e4dff10c7f566dbbb84fa7f4691938b80e
