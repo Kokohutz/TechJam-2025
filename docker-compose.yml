@@ -1,0 +1,40 @@
+services:
+  web-app:
+    build:
+      context: frontend
+      dockerfile: Dockerfile
+    container_name: web-app
+    ports:
+      - "8001:8001"
+    networks:
+      alpr-network:
+        ipv4_address: 172.20.0.10
+
+  svc-backend:
+    build:
+      context: backend
+      dockerfile: Dockerfile.cpu
+    container_name: svc-backend
+    environment:
+      - MODEL_TYPE=cpu
+    ports:
+      - "8002:8002"
+    networks:
+      alpr-network:
+        ipv4_address: 172.20.0.20
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+
+
+networks:
+  hackathon-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+          gateway: 172.20.0.1
