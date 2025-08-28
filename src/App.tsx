@@ -3,12 +3,177 @@ import { useCallback, useEffect, useState, useRef, root } from "@lynx-js/react";
 import type { NodesRef } from "@lynx-js/types";
 import "./App.css";
 
+
 interface Message {
   id: string;
   content: string;
   type: 'user' | 'assistant';
   timestamp: number;
 }
+
+function useKeyboardHeight() {
+  const [h, setH] = useState(0);
+
+  useEffect(() => {
+    const api: any =
+      (globalThis as any).tt ||
+      (globalThis as any).wx ||
+      (globalThis as any).lynx;
+
+    let cleanups: Array<() => void> = [];
+
+    // A) Preferred: height change callback (WeChat/TikTok)
+    if (api?.onKeyboardHeightChange) {
+      const handler = (e: any) => {
+        const height = Math.max(0, e?.height ?? 0);
+        console.log("[KB] onKeyboardHeightChange:", height, e);
+        setH(height);
+      };
+      api.onKeyboardHeightChange(handler);
+      cleanups.push(() => api?.offKeyboardHeightChange?.(handler));
+    }
+
+    // B) Fallback: show/hide events with last height (some runtimes)
+    if (api?.onKeyboardShow) {
+      const show = (e: any) => {
+        const height = Math.max(0, e?.height ?? 0);
+        console.log("[KB] onKeyboardShow:", height, e);
+        setH(height || 320); // guess if not provided
+      };
+      api.onKeyboardShow(show);
+      cleanups.push(() => api?.offKeyboardShow?.(show));
+    }
+    if (api?.onKeyboardHide) {
+      const hide = () => {
+        console.log("[KB] onKeyboardHide");
+        setH(0);
+      };
+      api.onKeyboardHide(hide);
+      cleanups.push(() => api?.offKeyboardHide?.(hide));
+    }
+
+    // C) Web fallback (H5)
+    if (typeof window !== "undefined" && (window as any).visualViewport) {
+      const vv = (window as any).visualViewport;
+      const handler = () => {
+        const delta = Math.max(0, window.innerHeight - vv.height);
+        console.log("[KB] visualViewport delta:", delta);
+        setH(Math.round(delta));
+      };
+      vv.addEventListener("resize", handler);
+      vv.addEventListener("scroll", handler);
+      handler();
+      cleanups.push(() => {
+        vv.removeEventListener("resize", handler);
+        vv.removeEventListener("scroll", handler);
+      });
+    }
+
+    return () => cleanups.forEach((fn) => fn());
+  }, []);
+
+  return h;
+}
+
+function getSafeBottomInset() {
+  try {
+    const api: any = (globalThis as any).tt || (globalThis as any).wx || (globalThis as any).lynx;
+    return api?.getSystemInfoSync?.()?.safeAreaInsets?.bottom ?? 0;
+  } catch {
+    return 0;
+  }
+}
+
+function useViewportDelta() {
+  const [delta, setDelta] = useState(0);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !(window as any).visualViewport) return;
+    const vv = (window as any).visualViewport;
+    const handler = () => {
+      const d = Math.max(0, window.innerHeight - vv.height);
+      setDelta(Math.round(d));
+    };
+    vv.addEventListener("resize", handler);
+    vv.addEventListener("scroll", handler);
+    handler();
+    return () => {
+      vv.removeEventListener("resize", handler);
+      vv.removeEventListener("scroll", handler);
+    };
+  }, []);
+
+  return delta; // 0 if not supported
+}
+
+
+export function ChatBar({
+  inputContent,
+  setInputContent,
+  onSend,
+}: {
+  inputContent: string;
+  setInputContent: (v: string) => void;
+  onSend: () => void;
+}) {
+  const kb = useKeyboardHeight();
+  const safeBottom = getSafeBottomInset();
+
+  // When keyboard is up, lift the bar by keyboard height; otherwise rest on safe area.
+  const viewportDelta = useViewportDelta();
+  const [focusLift, setFocusLift] = useState(0);
+  const bottomPx = kb > 0 ? kb : safeBottom || focusLift;
+  return(
+
+  <view
+      style={{
+        position: "fixed",
+        left: 0,
+        right: 0,
+        bottom: bottomPx,
+        padding: "8px",
+        backgroundColor: "#111",
+        borderTop: "1px solid #222",
+        linearOrientation: "horizontal", // row layout
+        alignItems: "center",
+        gap: "10px",
+      }}
+      >
+      <input
+        placeholder="Type a message…"
+        value={inputContent}
+        bindinput={(e: any) => setInputContent(e.detail.value)}
+        style={{
+          flex: 1,
+          width: "80%",
+          height: "40px",
+          padding: "0 10px",
+          fontSize: "16px",
+          color: "#fff",
+          backgroundColor: "#222",
+          border: "1px solid #333",
+          borderRadius: "6px",
+        }}
+      />
+      <view style={{ width: "20px" }} />
+
+      <view
+        bindtap={onSend}
+        style={{
+          height: "40px",
+          width: "60px",
+          borderRadius: "10px",
+          backgroundColor: inputContent.trim() ? "#4a8cff" : "#2a2a2a",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <text style={{ color: "#fff", fontSize: "14px" }}>Send</text>
+      </view>
+    </view>
+    )
+}
+
 
 const MessageBubble = ({ message }: { message: Message }) => {
   const isUser = message.type === 'user';
@@ -37,6 +202,7 @@ const MessageBubble = ({ message }: { message: Message }) => {
         </text>
       </view>
     </view>
+    
   );
 };
 
@@ -116,9 +282,9 @@ export const App = (props: { onRender?: () => void }) => {
             width: "100%",
             height: "100%",
             paddingTop: "20px",
-            paddingBottom: "20px"
+            paddingBottom: "200px"
           }}
-          list-type="vertical"
+          list-type="single"
           scroll-orientation="vertical"
         >
           {messages.map((message, index) => (
@@ -130,54 +296,14 @@ export const App = (props: { onRender?: () => void }) => {
               <MessageBubble message={message} />
             </list-item>
           ))}
-        </list>
+        </list>        
       </view>
-
-      <view style={{
-        height: "80px",
-        padding: "10px",
-        backgroundColor: "#111111cc",
-        borderTop: "1px solid #222",
-        linearOrientation: "horizontal",
-        alignItems: "center",
-        gap: "10px"
-      }}>
-        <input
-          placeholder="Type a message…"
-          value={inputContent}
-          bindinput={(e: any) => setInputContent(e.detail.value)}
-          style={{
-            flex: 1,
-            height: "44px",
-            padding: "0 12px",
-            fontSize: "16px",
-            color: "#fff",
-            backgroundColor: "#222",
-            borderRadius: "12px",
-            border: "1px solid #333"
-          }}
+      <ChatBar
+          inputContent={inputContent}
+          setInputContent={setInputContent}
+          onSend={onSend}
         />
-        <view
-          bindtap={onSend}
-          style={{
-            height: "44px",
-            width: "60px",
-            borderRadius: "12px",
-            backgroundColor: inputContent.trim() ? "#4a8cff" : "#2a2a2a",
-            linearOrientation: "horizontal",
-            justifyContent: "center",
-            alignItems: "center"
-          }}
-        >
-          <text style={{
-            color: inputContent.trim() ? "#000" : "#777",
-            fontSize: "16px",
-            fontWeight: "600"
-          }}>
-            Send
-          </text>
-        </view>
-      </view>
     </view>
   );
 };
+
