@@ -1,0 +1,23 @@
+services:
+  svc-backend:
+    build:
+      context: /home/sharyl/Proj/mbc_minions/backend
+      dockerfile: Dockerfile.cpu
+    container_name: svc-backend
+    environment:
+      - MODEL_TYPE=cpu
+    healthcheck:
+      interval: 30s
+      retries: 5
+      test:
+        - CMD
+        - curl
+        - -f
+        - http://localhost:8002/health
+      timeout: 10s
+    networks:
+      hackathon-network:
+        ipv4_address: 172.20.0.20
+    ports:
+      - 8002:8002/tcp
+version: "3"

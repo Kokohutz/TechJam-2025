@@ -1,0 +1,34 @@
+name: mbc_minions
+networks:
+  hackathon-network:
+    driver: bridge
+    ipam:
+      config:
+        - gateway: 172.20.0.1
+          subnet: 172.20.0.0/16
+    name: mbc_minions_hackathon-network
+services:
+  svc-backend:
+    build:
+      context: /home/sharyl/Proj/mbc_minions/backend
+      dockerfile: Dockerfile.cpu
+    container_name: svc-backend
+    environment:
+      - MODEL_TYPE=cpu
+    healthcheck:
+      interval: 30s
+      retries: 5
+      test:
+        - CMD
+        - curl
+        - -f
+        - http://localhost:8002/health
+      timeout: 10s
+    networks:
+      hackathon-network:
+        ipv4_address: 172.20.0.20
+    ports:
+      - mode: ingress
+        protocol: tcp
+        published: "8002"
+        target: 8002

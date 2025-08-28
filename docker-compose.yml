@@ -1,36 +1,54 @@
 services:
-  web-app:
-    build:
-      context: frontend
-      dockerfile: Dockerfile
-    container_name: web-app
-    ports:
-      - "8001:8001"
-    networks:
-      alpr-network:
-        ipv4_address: 172.20.0.10
+  # web-app:
 
+  #   build:
+
+  #     context: frontend
+
+  #     dockerfile: Dockerfile
+
+  #   container_name: web-app
+
+  #   ports:
+
+  #     - "8001:8001"
+
+  #   networks:
+
+  #     hackathon-network:
+
+  #       ipv4_address: 172.20.0.10
   svc-backend:
     build:
-      context: backend
-      dockerfile: Dockerfile.cpu
+      context: .
+      dockerfile: Dockerfile
     container_name: svc-backend
     environment:
       - MODEL_TYPE=cpu
     ports:
       - "8002:8002"
     networks:
-      alpr-network:
+      hackathon-network:
         ipv4_address: 172.20.0.20
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
     # deploy:
-    #   resources:
-    #     reservations:
-    #       devices:
-    #         - driver: nvidia
-    #           count: 1
-    #           capabilities: [gpu]
 
+    image: ""
+#   resources:
 
+#     reservations:
+
+#       devices:
+
+#         - driver: nvidia
+
+#           count: 1
+
+#           capabilities: [gpu]
 networks:
   hackathon-network:
     driver: bridge

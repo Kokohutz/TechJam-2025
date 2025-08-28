@@ -5,7 +5,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from datetime import datetime
 import asyncio
+import uvicorn
 import uuid
+import os
 
 app = FastAPI()
 app.add_middleware(
@@ -46,6 +48,10 @@ class ConnectionManager:
                     await connection.send_json(message)
 
 connector = ConnectionManager()
+
+@app.get("/health")
+def health_check():
+    return {"status": "ok"}
 
 @app.get("/")
 def read_root():
@@ -99,3 +105,6 @@ async def get_conversation(other_user_id: int, me: int = Query(...)):
     conversation.sort(key=lambda x: x["created_at"])
     print(conversation)
     return conversation
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=os.getenv("PORT", 8002))
