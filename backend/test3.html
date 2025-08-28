@@ -1,0 +1,147 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Chat Demo</title>
+  <style>
+    body { font: 14px system-ui, sans-serif; margin: 0; background:#0b0f14; color:#e6edf3; }
+    .chat { max-width: 820px; margin: 0 auto; height: 100vh; display: grid; grid-template-rows: auto 1fr auto; }
+    header { padding: 12px 16px; border-bottom: 1px solid #1f2937; }
+    #messages { list-style: none; padding: 16px; margin: 0; overflow-y: auto; }
+    .row { display: flex; margin: 6px 0; }
+    .me { justify-content: flex-end; }
+    .them { justify-content: flex-start; }
+    .bubble {
+      max-width: 68%;
+      padding: 10px 12px;
+      border-radius: 14px;
+      box-shadow: 0 1px 3px rgba(0,0,0,.25);
+      word-wrap: break-word; white-space: pre-wrap;
+    }
+    .me .bubble { background:#2563eb; color:#fff; border-bottom-right-radius: 4px; }
+    .them .bubble { background:#111827; color:#e6edf3; border-bottom-left-radius: 4px; }
+    .meta { font-size: 11px; opacity:.7; margin-top: 4px; }
+    form { display: flex; gap: 8px; padding: 12px 16px; border-top: 1px solid #1f2937; }
+    input[type="text"]{ flex: 1; padding: 10px 12px; border-radius: 10px; border: 1px solid #374151; background:#0f172a; color:#e6edf3; }
+    button{ padding: 10px 14px; border:0; border-radius: 10px; background:#22c55e; color:#021; font-weight:600; }
+    .daysep { text-align:center; margin: 12px 0; font-size: 12px; opacity:.7; }
+  </style>
+</head>
+<body>
+  <div class="chat">
+    <header>
+      <strong id="title">Chat</strong>
+    </header>
+
+    <ul id="messages"></ul>
+
+    <form id="composer">
+      <input id="text" type="text" placeholder="Type a message…" autocomplete="off" />
+      <button type="submit">Send</button>
+    </form>
+  </div>
+
+  <script>
+    // ---- configure these from your app/login context ----
+    const API_BASE = "http://localhost:8000";   // FastAPI base
+    const ME = 3;                                // my user id
+    const OTHER = 1;                             // chatting with user id 2
+    // -----------------------------------------------------
+
+    document.getElementById("title").textContent = `Chat with User ${OTHER}`;
+
+    const $list = document.getElementById("messages");
+    const $form = document.getElementById("composer");
+    const $text = document.getElementById("text");
+
+    function sanitize(str) {
+      const div = document.createElement("div");
+      div.textContent = String(str ?? "");
+      return div.innerHTML;
+    }
+
+    function formatTime(iso) {
+      try { return new Date(iso).toLocaleTimeString(); } catch { return ""; }
+    }
+
+    function addMessage({ id, text, sender_id, recipient_id, created_at, status }, incoming=true) {
+      const me = sender_id === ME ? "me" : "them";
+      const row = document.createElement("li");
+      row.className = `row ${me}`;
+
+      const bubble = document.createElement("div");
+      bubble.className = "bubble";
+      bubble.innerHTML = sanitize(text);
+
+      const meta = document.createElement("div");
+      meta.className = "meta";
+      meta.textContent = `${me === "me" ? "You" : `User ${sender_id}`} • ${created_at ? formatTime(created_at) : ""}${status ? ` • ${status}` : ""}`;
+
+      const wrap = document.createElement("div");
+      wrap.appendChild(bubble);
+      wrap.appendChild(meta);
+
+      row.appendChild(wrap);
+      $list.appendChild(row);
+      $list.scrollTop = $list.scrollHeight; // auto-scroll down
+    }
+
+    // --- open WebSocket to receive messages in real time ---
+    const ws = new WebSocket(`${API_BASE.replace('http','ws')}/ws/${ME}`);
+    ws.onopen = () => console.log("WS connected");
+    ws.onclose = () => console.log("WS closed");
+    ws.onmessage = (e) => {
+      let data;
+      try { data = JSON.parse(e.data); } catch { return; }
+      if (data.type === "message" && data.message) {
+        addMessage(data.message, true);
+      } else if (data.type === "read") {
+        // you could update read receipts here
+      } else if (data.type === "typing") {
+        // show typing indicator
+      }
+    };
+
+    // Fetch convo history
+    fetch(`${API_BASE}/get_conversation/${OTHER}/messages?me=${ME}`)
+      .then(r => r.json())
+      .then(items => items.forEach(m => addMessage(m, true)));
+
+    // --- send via REST; recipient receives via WebSocket ---
+    $form.addEventListener("submit", async (ev) => {
+      ev.preventDefault();
+      const text = $text.value.trim();
+      if (!text) return;
+
+      // (Optional) optimistic UI: render immediately as "sent"
+      const temp = {
+        id: `tmp-${Math.random().toString(36).slice(2)}`,
+        text, sender_id: ME, recipient_id: OTHER,
+        created_at: new Date().toISOString(), status: "sent"
+      };
+      addMessage(temp, false);
+
+      try {
+        const res = await fetch(`${API_BASE}/send_message`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text, senderID: ME, recipientID: OTHER })
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          console.error("send failed", err);
+          alert("Failed to send message.");
+        } else {
+          // optional: replace optimistic bubble status with server one
+          // (left simple here)
+        }
+      } catch (e) {
+        console.error(e);
+        alert("Network error.");
+      } finally {
+        $text.value = "";
+      }
+    });
+  </script>
+</body>
+</html>

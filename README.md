@@ -1,26 +1,3 @@
-<<<<<<< HEAD
-## Rspeedy project
-
-This is a ReactLynx project bootstrapped with `create-rspeedy`.
-
-## Getting Started
-
-First, install the dependencies:
-
-```bash
-pnpm install
-```
-
-Then, run the development server:
-
-```bash
-pnpm run dev
-```
-
-Scan the QRCode in the terminal with your LynxExplorer App to see the result.
-
-You can start editing the page by modifying `src/App.tsx`. The page auto-updates as you edit the file.
-=======
 # 2025 TechJam Hackathon
 
 ## Getting Started
@@ -28,19 +5,60 @@ You can start editing the page by modifying `src/App.tsx`. The page auto-updates
 ### Prerequisites
 
 - Git installed on your machine
-- [Node.js](https://nodejs.org/) (version X.X or higher)
+- [Node.js](https://nodejs.org/)
 - [Your package manager] (npm/yarn/pnpm)
-- [Any other dependencies specific to your project]
+- **Git LFS (Large File Storage)** - Required for handling model files
+
+### Git LFS Setup
+
+This project uses Git LFS to handle large model files efficiently. You'll need to set this up before cloning.
+
+#### Install Git LFS
+
+**On macOS:**
+```bash
+brew install git-lfs
+```
+
+**On Ubuntu/Debian:**
+```bash
+sudo apt install git-lfs
+```
+
+**On Windows:**
+Download from [git-lfs.github.io](https://git-lfs.github.io/) or use:
+```bash
+winget install Git.Git-LFS
+```
+
+**On other systems:**
+Visit [git-lfs.github.io](https://git-lfs.github.io/) for installation instructions.
+
+#### Initialize Git LFS
+
+After installation, initialize Git LFS:
+```bash
+git lfs install
+```
 
 ### Clone the Repository
 
 1. **Clone the project to your local machine:**
    
    ```bash
-   git clone https://github.com/Kokohutz/app-mbc_minions.git
-   cd app-mbc_minions
+   git clone https://github.com/Kokohutz/TechJam-2025.git
+   cd TechJam-2025
    ```
-1. **Install dependencies:**
+
+   > **Note:** The clone will automatically download LFS files. This may take longer than usual due to model files.
+
+2. **Verify LFS files were downloaded:**
+   
+   ```bash
+   git lfs ls-files
+   ```
+
+3. **Install dependencies:**
    
    ```bash
    npm install
@@ -49,13 +67,15 @@ You can start editing the page by modifying `src/App.tsx`. The page auto-updates
    # or
    pnpm install
    ```
-1. **Set up environment variables:**
+
+4. **Set up environment variables:**
    
    ```bash
    cp .env.example .env
    # Edit .env file with your local configuration
    ```
-1. **Start the development server:**
+
+5. **Start the development server:**
    
    ```bash
    npm run dev
@@ -64,6 +84,49 @@ You can start editing the page by modifying `src/App.tsx`. The page auto-updates
    # or
    pnpm dev
    ```
+
+## Working with Model Files
+
+### Tracked File Types
+
+The following file types are automatically tracked by Git LFS:
+- `.pkl` - Pickle files
+- `.h5` - HDF5 model files  
+- `.pb` - TensorFlow protobuf files
+- `.onnx` - ONNX model files
+- `.bin` - Binary model files
+- `.safetensors` - SafeTensors files
+- `.pt` - PyTorch files
+- `.pth` - PyTorch checkpoint files
+- `.joblib` - Joblib files
+
+### Adding New Model Files
+
+When adding new model files to the project:
+
+1. **Ensure the file type is tracked by LFS:**
+   ```bash
+   git lfs track "*.your-extension"
+   git add .gitattributes
+   git commit -m "Track new model file type with LFS"
+   ```
+
+2. **Add and commit your model file:**
+   ```bash
+   git add path/to/your/model.pkl
+   git commit -m "Add new model file"
+   ```
+
+3. **Push to remote (this will upload to LFS):**
+   ```bash
+   git push origin your-branch
+   ```
+
+### LFS Storage Limits
+
+- GitHub LFS: 1GB free, then paid storage
+- GitLab LFS: 10GB free per repository
+- Keep model files optimized and remove unused models
 
 ## Branch Strategy
 
@@ -84,7 +147,8 @@ You can start editing the page by modifying `src/App.tsx`. The page auto-updates
    git checkout main
    git pull origin main
    ```
-1. **Create a new branch for your feature/task:**
+
+2. **Create a new branch for your feature/task:**
    
    ```bash
    # Use a descriptive branch name
@@ -126,7 +190,8 @@ docs/lisa/api-documentation
    git add .
    git commit -m "Add user registration form validation"
    ```
-1. **Keep your branch updated with main:**
+
+2. **Keep your branch updated with main:**
    
    ```bash
    git checkout main
@@ -135,7 +200,8 @@ docs/lisa/api-documentation
    git merge main
    # Resolve any conflicts if they arise
    ```
-1. **Push your branch to remote:**
+
+3. **Push your branch to remote:**
    
    ```bash
    git push origin feature/your-name/your-feature
@@ -144,14 +210,15 @@ docs/lisa/api-documentation
 #### Creating a Pull Request
 
 1. **Push your completed feature branch**
-1. **Go to GitHub/GitLab and create a Pull Request**
-1. **Fill out the PR template with:**
-- Description of changes
-- Testing instructions
-- Screenshots (if UI changes)
-- Any breaking changes
-1. **Request review from team members**
-1. **Address any feedback and push updates**
+2. **Go to GitHub/GitLab and create a Pull Request**
+3. **Fill out the PR template with:**
+   - Description of changes
+   - Testing instructions
+   - Screenshots (if UI changes)
+   - Any breaking changes
+   - Model file changes (if applicable)
+4. **Request review from team members**
+5. **Address any feedback and push updates**
 
 #### After Your PR is Merged
 
@@ -162,7 +229,8 @@ docs/lisa/api-documentation
    git pull origin main
    git branch -d feature/your-name/your-feature
    ```
-1. **Delete remote branch (optional, usually done automatically):**
+
+2. **Delete remote branch (optional, usually done automatically):**
    
    ```bash
    git push origin --delete feature/your-name/your-feature
@@ -172,10 +240,11 @@ docs/lisa/api-documentation
 
 ### Code Quality
 
-- Follow the project’s coding standards
+- Follow the project's coding standards
 - Write meaningful commit messages
 - Include tests for new features
 - Update documentation as needed
+- Optimize model files before committing
 
 ### Commit Message Format
 
@@ -186,9 +255,10 @@ Detailed explanation if needed
 
 - List any breaking changes
 - Reference issue numbers (#123)
+- Note any model file changes
 ```
 
-**Types:** `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
+**Types:** `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`, `model`
 
 ### Before Pushing
 
@@ -196,6 +266,8 @@ Detailed explanation if needed
 - [ ] Check linting: `npm run lint`
 - [ ] Build successfully: `npm run build`
 - [ ] Update documentation if needed
+- [ ] Verify LFS files are tracked: `git lfs ls-files`
+- [ ] Check model file sizes are reasonable
 
 ## Deployment
 
@@ -205,6 +277,7 @@ Detailed explanation if needed
 - Only merge to main after thorough testing
 - Use pull requests for all changes to main
 - Maintainers will handle the merge and deployment
+- LFS files are automatically deployed with the application
 
 ### Environment URLs
 
@@ -245,20 +318,58 @@ git push origin -u new-branch-name
 git push origin --delete old-branch-name
 ```
 
+**LFS Issues:**
+
+**File not downloading properly:**
+```bash
+git lfs pull
+```
+
+**Check LFS status:**
+```bash
+git lfs status
+```
+
+**Re-download all LFS files:**
+```bash
+git lfs fetch --all
+git lfs checkout
+```
+
+**Large file committed without LFS:**
+```bash
+# Track the file type with LFS
+git lfs track "*.pkl"
+git add .gitattributes
+
+# Remove from Git history and re-add with LFS
+git rm --cached large-file.pkl
+git add large-file.pkl
+git commit -m "Track large file with LFS"
+```
+
 ## Getting Help
 
 - Check existing issues on GitHub/GitLab
 - Ask questions in the team chat
 - Review the project documentation
 - Contact the maintainers: [maintainer-emails]
+- For LFS issues: [Git LFS documentation](https://git-lfs.github.io/)
 
 ## Contributing
 
 1. Fork the repository
-1. Create your feature branch
-1. Make your changes
-1. Add tests and documentation
-1. Submit a pull request
+2. Set up Git LFS on your machine
+3. Create your feature branch
+4. Make your changes
+5. Add tests and documentation
+6. Ensure model files are properly tracked with LFS
+7. Submit a pull request
 
 Thank you for contributing to our project! 🚀
->>>>>>> 1a4483e4dff10c7f566dbbb84fa7f4691938b80e
+
+## Additional Resources
+
+- [Git LFS Tutorial](https://github.com/git-lfs/git-lfs/wiki/Tutorial)
+- [Working with Large Files](https://docs.github.com/en/repositories/working-with-files/managing-large-files)
+- [Best Practices for ML Projects](https://dvc.org/doc/user-guide/how-to/contribute-model)
