@@ -199,8 +199,8 @@ def send_message(chat_id: str, msg_data: MessageCreate):
         'content': json_response['encrypted_text'], # Auto show the encrypted text
         'type': 'user',
         'timestamp': time.time() * 1000,
-        # 'imageUrl': image_url,
-        # 'username': sender,
+        'imageUrl': image_url,
+        'username': sender,
         'encrypted_words': encrypted_words_list,  # in case we want to decrypt, the list is in the order of appearance (1st ENCRYPTED_** = index[0])
         'original_text': json_response['original_text'],  # in case uw just show everything
         'encrypted_text': json_response['encrypted_text'] # in case uw want to show everything encrypted
@@ -268,4 +268,5 @@ def reset_data():
 
 
 if __name__ == '__main__':
+
     uvicorn.run(app, host="0.0.0.0", port=8002)
