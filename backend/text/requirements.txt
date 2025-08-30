@@ -1,0 +1,9 @@
+numpy
+pandas
+torch
+datasets
+tqdm
+tenseal
+google-generativeai
+python-dotenv
+pickle
