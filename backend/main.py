@@ -5,6 +5,7 @@ from typing import Dict, List, Optional
 import uvicorn
 import uuid
 import time
+import requests
 
 app = FastAPI()
 
@@ -174,13 +175,32 @@ def send_message(chat_id: str, msg_data: MessageCreate):
     if sender not in chats[chat_id]['participants']:
         raise HTTPException(status_code=403, detail='User not in chat')
 
+    # Validate message content
+    endpoint = "127.0.0.1:8003"
+    headers = {"Content-Type": "application/json"}
+    response = requests.get(f"http://{endpoint}/validate_text_msg?text={content}", headers=headers)
+
+    if response.status_code != 200:
+        raise HTTPException(status_code=400, detail='Invalid message content')
+
+    json_response = response.json()
+    # End
+
+    entity_list = json_response.get('entities', [])
+    encrypted_words_list = []
+    for dict in entity_list:
+        if dict["sensitivity_level"] >=2:
+            encrypted_words_list.append(dict["text"])
+    print("Encrypted_words", encrypted_words_list)
+
     message = {
         'id': str(uuid.uuid4()),
-        'content': content,
+        'content': json_response['encrypted_text'], # Auto show the encrypted text
         'type': 'user',
         'timestamp': time.time() * 1000,
         'imageUrl': image_url,
-        'username': sender
+        'username': sender,
+        'encrypted_words': encrypted_words_list # in case uw to decrypt, the list is in the order of appearance (1st ENCRYPTED_** = index[0])
     }
     messages.setdefault(chat_id, []).append(message)
     return {'message': message}
