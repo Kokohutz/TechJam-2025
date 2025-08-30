@@ -1,41 +1,25 @@
-// {
-//   "compilerOptions": {
-//     "jsx": "react-jsx",
-//     "jsxImportSource": "@lynx-js/react",
-
-//     "module": "node18",
-//     "moduleResolution": "node16",
-
-//     "strict": true,
-//     "isolatedModules": true,
-//     "verbatimModuleSyntax": true,
-
-//     "esModuleInterop": true,
-//     "skipLibCheck": true,
-
-    
-//   },
-//   "exclude": ["dist/"],
-//   "include": ["src"],
-  
-// }
-
 {
   "compilerOptions": {
     "jsx": "react-jsx",
     "jsxImportSource": "@lynx-js/react",
-
-    "module": "node18",
-    "moduleResolution": "node16",
-
+    // "module": "node18",
+    "module": "ES2020",
+    "target": "ES2020",
+    // "moduleResolution": "node16",
+    "moduleResolution": "bundler",
     "strict": true,
     "isolatedModules": true,
     "verbatimModuleSyntax": true,
-
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "types": ["@lynx-js/types"]        // optional, helps TS load Lynx typings
+    "types": [
+      "@lynx-js/types"
+    ] // optional, helps TS load Lynx typings
   },
-  "exclude": ["dist/"],
-  "include": ["src"]
+  "exclude": [
+    "dist/"
+  ],
+  "include": [
+    "src"
+  ]
 }

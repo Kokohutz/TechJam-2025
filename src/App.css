@@ -1,4 +1,8 @@
-:root {
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* :root {
   background-color: #000;
   --color-text: #fff;
 }
@@ -116,4 +120,4 @@ text {
   font-size: 12px;
   margin: 5px;
   color: rgba(255, 255, 255, 0.65);
-}
+} */
