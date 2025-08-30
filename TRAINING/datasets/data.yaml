@@ -1,7 +1,0 @@
-names:
-- Document
-- ID Card
-nc: 2
-path: datasets
-train: train/images
-val: valid/images
