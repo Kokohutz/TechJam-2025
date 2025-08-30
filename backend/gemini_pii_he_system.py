@@ -594,8 +594,9 @@ def validate_text_msg(text: str):
     # Encryption
     result = system.encrypt_text_pii(text, min_sensitivity=2)
     encrypted_text = result['processed_text']
+    original_text = result['original_text']
 
-    return {"entities": entities, "encrypted_text": encrypted_text}
+    return {"entities": entities, "encrypted_text": encrypted_text, "original_text": original_text}
 
 if __name__ == "__main__":
     system = GeminiPIIEncryptionSystem(API_KEY)

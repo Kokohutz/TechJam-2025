@@ -6,6 +6,7 @@ import uvicorn
 import uuid
 import time
 import requests
+import re
 
 app = FastAPI()
 
@@ -198,12 +199,41 @@ def send_message(chat_id: str, msg_data: MessageCreate):
         'content': json_response['encrypted_text'], # Auto show the encrypted text
         'type': 'user',
         'timestamp': time.time() * 1000,
-        'imageUrl': image_url,
-        'username': sender,
-        'encrypted_words': encrypted_words_list # in case uw to decrypt, the list is in the order of appearance (1st ENCRYPTED_** = index[0])
+        # 'imageUrl': image_url,
+        # 'username': sender,
+        'encrypted_words': encrypted_words_list,  # in case we want to decrypt, the list is in the order of appearance (1st ENCRYPTED_** = index[0])
+        'original_text': json_response['original_text'],  # in case uw just show everything
+        'encrypted_text': json_response['encrypted_text'] # in case uw want to show everything encrypted
     }
     messages.setdefault(chat_id, []).append(message)
     return {'message': message}
+
+
+ENCRYPTED_RE = re.compile(r"\[ENCRYPTED_[^\]]+\]")
+@app.get('/chats/{chat_id}/messages/decrypt')
+def decrypt_messages(chat_id: str, msg_id: str, enc_msg: str):
+    if chat_id not in chats:
+        raise HTTPException(status_code=404, detail='Chat not found')
+    chat_messages = messages.get(chat_id, [])
+    message = next((msg for msg in chat_messages if msg['id'] == msg_id), None)
+    if not message:
+        raise HTTPException(status_code=404, detail='Message not found')
+    
+    content = message['content']
+    encrypted_words = message['encrypted_words']
+    encrypted_text = message['encrypted_text']
+
+    index_positions = [m.group(0) for m in ENCRYPTED_RE.finditer(encrypted_text)]
+    idx = index_positions.index(enc_msg)
+    
+    original_word = encrypted_words[idx] if idx < len(encrypted_words) else None
+    
+    content = content.replace(enc_msg, original_word)
+    
+    message['content'] = content
+    
+    return {'message': message}
+    
 
 # Real-time polling endpoint (THE FIX)
 @app.get('/chats/{chat_id}/messages/since/{timestamp}')
