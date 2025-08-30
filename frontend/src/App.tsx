@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from '@lynx-js/react';
-import ImagePicker from './ImagePickerModule.js';
+
 // TypeScript interfaces
 interface UserProfile {
   username: string;
@@ -24,6 +24,14 @@ interface Chat {
   unreadCount: number;
   timestamp: number;
 }
+
+
+const SAMPLE_IMAGES = [
+  'https://s3.ap-southeast-1.amazonaws.com/textract-public-assets-ap-southeast-1/DLRegular.png',
+  'https://s3.ap-southeast-1.amazonaws.com/textract-public-assets-ap-southeast-1/Passport.png',
+  'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ38knCnD663lAFB8HFviaRm8F_FpzetB_gdQ&s',
+  'https://www.shutterstock.com/image-photo/man-holds-credit-card-he-600nw-2476576361.jpg',
+];
 
 // API Configuration
 const API_BASE_URL = 'http://192.168.0.253:8002';
@@ -71,7 +79,11 @@ const api = {
     const response = await lynx.fetch(`${API_BASE_URL}/chats/${chatId}/messages`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ content, sender, imageData }) // Changed from imageUrl
+      body: JSON.stringify({
+        content,
+        sender,
+        imageUrl: imageData  // Changed from imageData to imageUrl
+      })
     });
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || 'Failed to send message');
@@ -90,7 +102,29 @@ const api = {
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || 'Failed to load new messages');
     return data;
-  }
+  },
+
+  async detectSensitiveData(imageUrl: string) {
+    console.log('Detecting sensitive data for:', imageUrl);
+    await new Promise(resolve => setTimeout(resolve, 800));
+
+    // BBoxes are now relative [x1, y1, x2, y2] as percentages (0.0 to 1.0)
+    const sensitiveDataMap: Record<string, number[][]> = {
+      'https://s3.ap-southeast-1.amazonaws.com/textract-public-assets-ap-southeast-1/DLRegular.png': [
+        [0.05, 0.15, 0.60, 0.30], // Relative bbox for name/address
+        [0.05, 0.40, 0.75, 0.55]
+      ],
+      'https://www.shutterstock.com/image-photo/man-holds-credit-card-he-600nw-2476576361.jpg': [
+        [0.35, 0.45, 0.85, 0.65] // Relative bbox for credit card numbers
+      ],
+    };
+
+    const bboxes = sensitiveDataMap[imageUrl] || [];
+    return {
+      isSensitive: bboxes.length > 0,
+      bboxes: bboxes,
+    };
+  },
 };
 
 // Simple in-memory storage for testing
@@ -135,91 +169,54 @@ const UsernameSetupPage = ({ onComplete }: { onComplete: (username: string) => v
   }, [username, onComplete]);
 
   return (
-    <view style={{
-      width: '100%',
-      height: '100%',
-      backgroundColor: '#f0f0f0',
-      padding: '20px'
-    }}>
-      <view style={{
-        backgroundColor: '#ffffff',
-        borderRadius: '12px',
-        padding: '24px',
-        marginTop: '100px'
-      }}>
-        <text style={{
-          fontSize: '24px',
-          fontWeight: 'bold',
-          color: '#333333',
-          marginBottom: '20px',
-          textAlign: 'center'
-        }}>
-          Welcome to Lynx Chat
-        </text>
-
-        <text style={{
-          fontSize: '16px',
-          color: '#666666',
-          marginBottom: '24px',
-          textAlign: 'center'
-        }}>
-          Choose your username
-        </text>
-
-        {error && (
-          <text style={{
-            fontSize: '14px',
-            color: '#ff3333',
-            marginBottom: '16px',
-            textAlign: 'center'
-          }}>
-            {error}
+    <view className="flex flex-col w-full h-full p-5" style={{ backgroundColor: '#f0f0f0' }}>
+      <view className="flex-1 flex flex-col justify-center">
+        <view className="bg-white rounded-xl p-6 mx-4" style={{ backgroundColor: '#ffffff' }}>
+          <text className="text-2xl font-bold text-center mb-5" style={{ color: '#333333' }}>
+            Welcome to Lynx Chat
           </text>
-        )}
 
-        <view style={{ marginBottom: '20px' }}>
-          <input
-            value={username}
-            placeholder="Enter username"
-            bindinput={(e: { detail: { value: string } }) => setUsername(e.detail.value)}
+          <text className="text-base text-center mb-6" style={{ color: '#666666' }}>
+            Choose your username
+          </text>
+
+          {error && (
+            <text className="text-sm text-center mb-4" style={{ color: '#ff3333' }}>
+              {error}
+            </text>
+          )}
+
+          <view className="mb-5">
+            <input
+              value={username}
+              placeholder="Enter username"
+              bindinput={(e: { detail: { value: string } }) => setUsername(e.detail.value)}
+              className="w-full h-12 border-2 rounded-lg px-3 text-base"
+              style={{
+                borderColor: '#e0e0e0',
+                backgroundColor: '#ffffff'
+              }}
+            />
+          </view>
+
+          <view
+            className="w-full h-12 rounded-lg flex justify-center items-center"
             style={{
-              width: '100%',
-              height: '48px',
-              border: '2px solid #e0e0e0',
-              borderRadius: '8px',
-              padding: '12px',
-              fontSize: '16px',
-              backgroundColor: '#ffffff'
+              backgroundColor: (username.trim().length >= 3 && !loading) ? '#007AFF' : '#cccccc'
             }}
-          />
-        </view>
-
-        <view
-          style={{
-            width: '100%',
-            height: '48px',
-            backgroundColor: (username.trim().length >= 3 && !loading) ? '#007AFF' : '#cccccc',
-            borderRadius: '8px',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center'
-          }}
-          bindtap={(username.trim().length >= 3 && !loading) ? handleSave : undefined}
-        >
-          <text style={{
-            color: '#ffffff',
-            fontSize: '16px',
-            fontWeight: 'bold'
-          }}>
-            {loading ? 'Creating...' : 'Continue'}
-          </text>
+            bindtap={(username.trim().length >= 3 && !loading) ? handleSave : undefined}
+          >
+            <text className="text-base font-bold" style={{ color: '#ffffff' }}>
+              {loading ? 'Creating...' : 'Continue'}
+            </text>
+          </view>
         </view>
       </view>
     </view>
   );
 };
 
-// Chat List Page (FIXED)
+// Chat List Page
 const ChatListPage = ({
   currentUser,
   onSearchUsers,
@@ -255,145 +252,74 @@ const ChatListPage = ({
   }, [onRefreshChats]);
 
   return (
-    // --- FIX 1: Make the root view a flex container ---
-    <view style={{
-      width: '100%',
-      height: '100%',
-      backgroundColor: '#f0f0f0',
-      display: 'flex',
-      flexDirection: 'column'
-    }}>
-      {/* Header (No changes needed here) */}
-      <view style={{
-        height: '100px',
-        backgroundColor: '#007AFF',
-        padding: '20px',
-        paddingTop: '40px'
-      }}>
-        <view style={{
-          display: 'flex',
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          alignItems: 'center'
-        }}>
+    <view className="flex flex-col w-full h-full" style={{ backgroundColor: '#f0f0f0' }}>
+      {/* Header */}
+      <view className="h-25 px-5 pt-10 pb-5" style={{ backgroundColor: '#007AFF' }}>
+        <view className="flex flex-row justify-between items-center">
           <view>
-            <text style={{ color: '#ffffff', fontSize: '24px', fontWeight: 'bold' }}>
+            <text className="text-2xl font-bold" style={{ color: '#ffffff' }}>
               Chats
             </text>
-            <text style={{ color: 'rgba(255, 255, 255, 0.8)', fontSize: '14px' }}>
+            <text className="text-sm" style={{ color: 'rgba(255, 255, 255, 0.8)' }}>
               @{currentUser}
             </text>
           </view>
 
           <view
-            style={{
-              width: '40px',
-              height: '40px',
-              backgroundColor: 'rgba(255, 255, 255, 0.2)',
-              borderRadius: '20px',
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center'
-            }}
+            className="w-10 h-10 rounded-full flex justify-center items-center"
+            style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }}
             bindtap={onSearchUsers}
           >
-            <text style={{ color: '#ffffff', fontSize: '20px' }}>+</text>
+            <text className="text-xl" style={{ color: '#ffffff' }}>+</text>
           </view>
         </view>
       </view>
 
-      {/* --- FIX 2: Use a <scroll-view> that fills available space --- */}
-      <view style={{ flex: 1, padding: '10px' }}>
+      {/* Chat List */}
+      <view className="flex-1 p-2">
         {chats.length === 0 ? (
-          <view style={{
-            padding: '60px 20px',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: '16px'
-          }}>
-            <view style={{
-              width: '80px',
-              height: '80px',
-              borderRadius: '40px',
-              backgroundColor: '#e0e0e0',
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center'
-            }}>
-              <text style={{ fontSize: '32px' }}>💬</text>
+          <view className="flex flex-col items-center py-16 px-5 gap-4">
+            <view className="w-20 h-20 rounded-full bg-gray-200 flex justify-center items-center">
+              <text className="text-3xl">💬</text>
             </view>
-            <text style={{ fontSize: '18px', color: '#666666', textAlign: 'center' }}>
+            <text className="text-lg text-center" style={{ color: '#666666' }}>
               No conversations yet
             </text>
-            <text style={{ fontSize: '14px', color: '#999999', textAlign: 'center' }}>
+            <text className="text-sm text-center" style={{ color: '#999999' }}>
               Tap + to search for users
             </text>
           </view>
         ) : (
-          // --- FIX 3: Replace <list> and <list-item> with <scroll-view> and <view> ---
-          <scroll-view style={{ width: '100%', height: '100%' }} scroll-orientation="vertical">
+          <scroll-view className="w-full h-full">
             {chats.map((chat) => (
               <view
-                key={chat.id} // Key is now on the main <view>
-                style={{
-                  backgroundColor: '#ffffff',
-                  borderRadius: '12px',
-                  padding: '16px',
-                  marginBottom: '8px',
-                  display: 'flex',
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: '12px'
-                }}
+                key={chat.id}
+                className="bg-white rounded-xl p-4 mb-2 flex flex-row items-center gap-3"
                 bindtap={() => onOpenChat(chat.id)}
               >
-                <view style={{
-                  width: '48px',
-                  height: '48px',
-                  borderRadius: '24px',
-                  backgroundColor: '#007AFF',
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center'
-                }}>
-                  <text style={{ color: '#ffffff', fontSize: '20px', fontWeight: 'bold' }}>
+                <view className="w-12 h-12 rounded-full flex justify-center items-center" style={{ backgroundColor: '#007AFF' }}>
+                  <text className="text-xl font-bold" style={{ color: '#ffffff' }}>
                     {chat.username.charAt(0).toUpperCase()}
                   </text>
                 </view>
 
-                <view style={{ flex: 1 }}>
-                  <view style={{
-                    display: 'flex',
-                    flexDirection: 'row',
-                    justifyContent: 'space-between',
-                    alignItems: 'center'
-                  }}>
-                    <text style={{ fontSize: '16px', fontWeight: 'bold', color: '#333333' }}>
+                <view className="flex-1">
+                  <view className="flex flex-row justify-between items-center">
+                    <text className="text-base font-bold" style={{ color: '#333333' }}>
                       @{chat.username}
                     </text>
-                    <text style={{ fontSize: '12px', color: '#999999' }}>
+                    <text className="text-xs" style={{ color: '#999999' }}>
                       {formatTime(chat.timestamp)}
                     </text>
                   </view>
-                  <text style={{ fontSize: '14px', color: '#666666', marginTop: '4px' }}>
+                  <text className="text-sm mt-1" style={{ color: '#666666' }}>
                     {chat.lastMessage || 'Start a conversation'}
                   </text>
                 </view>
 
                 {chat.unreadCount > 0 && (
-                  <view style={{
-                    minWidth: '20px',
-                    height: '20px',
-                    borderRadius: '10px',
-                    backgroundColor: '#ff3333',
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    paddingLeft: '6px',
-                    paddingRight: '6px'
-                  }}>
-                    <text style={{ color: '#ffffff', fontSize: '12px', fontWeight: 'bold' }}>
+                  <view className="min-w-5 h-5 rounded-full px-2 flex justify-center items-center" style={{ backgroundColor: '#ff3333' }}>
+                    <text className="text-xs font-bold" style={{ color: '#ffffff' }}>
                       {chat.unreadCount > 99 ? '99+' : chat.unreadCount}
                     </text>
                   </view>
@@ -422,19 +348,14 @@ const SearchPage = ({
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
 
-  // This function is now the source of truth for handling searches.
   const handleSearch = useCallback(async (query: string) => {
     setLoading(true);
     setError('');
     try {
-      // Use the provided query string.
       const response = await api.searchUsers(query, currentUser);
-
-      // The API response is { "users": [...] }, so we access the .users property.
       if (response && Array.isArray(response.users)) {
         setResults(response.users);
       } else {
-        // Handle cases where the response is not what we expect.
         setError('Received invalid data from the server.');
         setResults([]);
       }
@@ -446,89 +367,40 @@ const SearchPage = ({
     }
   }, [currentUser]);
 
-  // Load all users when the component first mounts.
   useEffect(() => {
-    handleSearch(''); // An empty query fetches all users.
+    handleSearch('');
   }, [handleSearch]);
 
   return (
-    <view style={{
-      width: '100%',
-      height: '100%',
-      backgroundColor: '#f0f0f0',
-      display: 'flex', // Use flexbox for layout
-      flexDirection: 'column'
-    }}>
+    <view className="flex flex-col w-full h-full" style={{ backgroundColor: '#f0f0f0' }}>
       {/* Header */}
-      <view style={{
-        height: '100px',
-        backgroundColor: '#007AFF',
-        padding: '20px',
-        paddingTop: '40px'
-      }}>
-        <view style={{
-          display: 'flex',
-          flexDirection: 'row',
-          alignItems: 'center',
-          gap: '16px'
-        }}>
+      <view className="h-25 px-5 pt-10 pb-5" style={{ backgroundColor: '#007AFF' }}>
+        <view className="flex flex-row items-center gap-4">
           <view
-            style={{
-              width: '40px',
-              height: '40px',
-              backgroundColor: 'rgba(255, 255, 255, 0.2)',
-              borderRadius: '20px',
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center'
-            }}
+            className="w-10 h-10 rounded-full flex justify-center items-center"
+            style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }}
             bindtap={onBack}
           >
-            <text style={{ color: '#ffffff', fontSize: '18px' }}>←</text>
+            <text className="text-lg" style={{ color: '#ffffff' }}>←</text>
           </view>
-          <text style={{
-            color: '#ffffff',
-            fontSize: '20px',
-            fontWeight: 'bold'
-          }}>
+          <text className="text-xl font-bold" style={{ color: '#ffffff' }}>
             Search Users
           </text>
         </view>
       </view>
 
       {/* Search Input */}
-      <view style={{ padding: '16px' }}>
-        <view style={{
-          display: 'flex',
-          flexDirection: 'row',
-          backgroundColor: '#ffffff',
-          borderRadius: '24px',
-          padding: '8px',
-          gap: '8px'
-        }}>
+      <view className="p-4">
+        <view className="flex flex-row bg-white rounded-full p-2 gap-2">
           <input
             value={searchQuery}
             placeholder="Search users..."
             bindinput={(e: { detail: { value: string } }) => setSearchQuery(e.detail.value)}
-            style={{
-              flex: 1,
-              height: '40px',
-              border: 'none',
-              outline: 'none',
-              fontSize: '16px',
-              paddingLeft: '16px'
-            }}
+            className="flex-1 h-10 px-4 text-base border-none outline-none"
           />
           <view
-            style={{
-              width: '40px',
-              height: '40px',
-              backgroundColor: loading ? '#cccccc' : '#007AFF',
-              borderRadius: '20px',
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center'
-            }}
+            className="w-10 h-10 rounded-full flex justify-center items-center"
+            style={{ backgroundColor: loading ? '#cccccc' : '#007AFF' }}
             bindtap={!loading ? () => handleSearch(searchQuery) : undefined}
           >
             <text style={{ color: '#ffffff' }}>
@@ -540,74 +412,45 @@ const SearchPage = ({
 
       {/* Error Display */}
       {error && (
-        <view style={{ padding: '0 16px' }}>
-          <text style={{ fontSize: '14px', color: '#ff3333', textAlign: 'center' }}>
+        <view className="px-4">
+          <text className="text-sm text-center" style={{ color: '#ff3333' }}>
             {error}
           </text>
         </view>
       )}
 
-      {/* --- RENDER RESULTS USING SCROLL-VIEW (THE FIX) --- */}
-      <scroll-view
-        style={{ flex: 1, padding: '0 16px' }}
-        scroll-orientation="vertical"
-      >
-        {/* Show a message if loading is done and there are no results */}
-        {!loading && results.length === 0 && (
-          <text style={{ textAlign: 'center', color: '#666', marginTop: '20px' }}>
-            No users found.
-          </text>
-        )}
-
-        {results.map((user) => (
-          <view
-            key={user.username}
-            style={{
-              backgroundColor: '#ffffff',
-              borderRadius: '12px',
-              padding: '16px',
-              marginBottom: '8px',
-              display: 'flex',
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: '12px'
-            }}
-            bindtap={() => onAddChat(user.username)}
-          >
-            <view style={{
-              width: '48px',
-              height: '48px',
-              borderRadius: '24px',
-              backgroundColor: '#007AFF',
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center'
-            }}>
-              <text style={{
-                color: '#ffffff',
-                fontSize: '18px',
-                fontWeight: 'bold'
-              }}>
-                {user.username.charAt(0).toUpperCase()}
-              </text>
-            </view>
-            <text style={{
-              fontSize: '16px',
-              fontWeight: 'bold',
-              color: '#333333',
-              flex: 1
-            }}>
-              @{user.username}
+      {/* Results */}
+      <view className="flex-1 px-4">
+        <scroll-view className="w-full h-full">
+          {!loading && results.length === 0 && (
+            <text className="text-center mt-5" style={{ color: '#666666' }}>
+              No users found.
             </text>
-            <text style={{ fontSize: '20px', color: '#007AFF' }}>+</text>
-          </view>
-        ))}
-      </scroll-view>
+          )}
+
+          {results.map((user) => (
+            <view
+              key={user.username}
+              className="bg-white rounded-xl p-4 mb-2 flex flex-row items-center gap-3"
+              bindtap={() => onAddChat(user.username)}
+            >
+              <view className="w-12 h-12 rounded-full flex justify-center items-center" style={{ backgroundColor: '#007AFF' }}>
+                <text className="text-lg font-bold" style={{ color: '#ffffff' }}>
+                  {user.username.charAt(0).toUpperCase()}
+                </text>
+              </view>
+              <text className="flex-1 text-base font-bold" style={{ color: '#333333' }}>
+                @{user.username}
+              </text>
+              <text className="text-xl" style={{ color: '#007AFF' }}>+</text>
+            </view>
+          ))}
+        </scroll-view>
+      </view>
     </view>
   );
 };
 
-// Chat Page
 const ChatPage = ({
   chat,
   onBack,
@@ -622,300 +465,272 @@ const ChatPage = ({
   const [inputContent, setInputContent] = useState<string>('');
   const [messages, setMessages] = useState<Message[]>(chat.messages);
   const [loading, setLoading] = useState<boolean>(false);
-  const [lastTimestamp, setLastTimestamp] = useState<number>(() =>
-    chat.messages.length > 0 ? chat.messages[chat.messages.length - 1].timestamp : Date.now()
-  );
+  const [lastTimestamp, setLastTimestamp] = useState<number>(0);
+  const [showImagePicker, setShowImagePicker] = useState<boolean>(false);
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState<boolean>(false);
 
-  // --- FIX #1: This hook synchronizes the local state with the prop from the parent ---
-  // This ensures that updates from the parent App component are reflected here.
+  // --- CHANGE 1: New state to manage the image confirmation flow ---
+  const [pendingImage, setPendingImage] = useState<{
+    url: string;
+    bboxes: number[][];
+    isSensitive: boolean;
+  } | null>(null);
+
+
+  // (useEffect hooks for syncing and polling remain the same)
   useEffect(() => {
     setMessages(chat.messages);
-  }, [chat.messages]);
+    setLastTimestamp(0);
+  }, [chat.messages, chat.id]);
 
-
-  // Real-time message polling (This part is correct)
   useEffect(() => {
+    let isActive = true;
+    let pollCount = 0;
     const pollMessages = async () => {
+      if (!isActive) return;
       try {
-        // We use the local lastTimestamp state for polling
-        const response = await api.getMessagesSince(chat.id, lastTimestamp);
+        const timestampToUse = pollCount < 3 ? 0 : lastTimestamp;
+        const response = await api.getMessagesSince(chat.id, timestampToUse);
+        if (!isActive) return;
         if (response.messages && response.messages.length > 0) {
           const newMessages: Message[] = response.messages.map((msg: any) => ({
             ...msg,
             type: msg.username === currentUser ? 'user' : 'other'
           }));
-
-          setMessages(prevMessages => {
-            const existingMessageIds = new Set(prevMessages.map((m: Message) => m.id));
-            const trulyNewMessages = newMessages.filter((m: Message) => !existingMessageIds.has(m.id));
-
-            if (trulyNewMessages.length === 0) {
-              return prevMessages;
+          setMessages(prev => {
+            if (pollCount < 3) {
+              onUpdateChat(chat.id, newMessages);
+              return newMessages;
+            } else {
+              const existingIds = new Set(prev.map(m => m.id));
+              const trulyNew = newMessages.filter(m => !existingIds.has(m.id));
+              if (trulyNew.length === 0) return prev;
+              const updated = [...prev, ...trulyNew];
+              onUpdateChat(chat.id, updated);
+              return updated;
             }
-
-            const updatedMessages = [...prevMessages, ...trulyNewMessages];
-            // Also update the parent's state
-            onUpdateChat(chat.id, updatedMessages);
-            return updatedMessages;
           });
-
-          setLastTimestamp(response.messages[response.messages.length - 1].timestamp);
+          const latestTimestamp = Math.max(...response.messages.map((msg: any) => msg.timestamp));
+          setLastTimestamp(latestTimestamp);
         }
+        pollCount++;
       } catch (err) {
         console.error('Polling failed:', err);
       }
     };
+    pollMessages();
+    const interval = setInterval(pollMessages, 1000);
+    return () => {
+      isActive = false;
+      clearInterval(interval);
+    };
+  }, [chat.id, currentUser, onUpdateChat]);
 
-    const interval = setInterval(pollMessages, 1500);
-    return () => clearInterval(interval);
-  }, [chat.id, currentUser, lastTimestamp, onUpdateChat]);
 
-  // handleSend logic is correct
   const handleSend = useCallback(async (content: string, imageData?: string) => {
     if (loading) return;
-
     setLoading(true);
-    if (content) setInputContent('');
-
     try {
-      // Pass the imageData (base64 or URI) to the API
       const response = await api.sendMessage(chat.id, content, currentUser, imageData);
       const newMessage: Message = { ...response.message, type: 'user' as const };
-
-      setMessages(prevMessages => {
-        const updatedMessages = [...prevMessages, newMessage];
-        onUpdateChat(chat.id, updatedMessages);
-        return updatedMessages;
+      setMessages(prev => {
+        const updated = [...prev, newMessage];
+        onUpdateChat(chat.id, updated);
+        return updated;
       });
-
       setLastTimestamp(newMessage.timestamp);
-
     } catch (err: any) {
       console.error('Failed to send message:', err);
-      if (content) setInputContent(content);
     } finally {
       setLoading(false);
     }
   }, [loading, currentUser, chat.id, onUpdateChat]);
 
-
-  /**
-   * This function is called when the user taps the send button for text.
-   * It's a simple, parameter-less function suitable for UI event handlers.
-   */
-  const handleTextSend = () => {
+  const handleTextSend = useCallback(() => {
     const content = inputContent.trim();
     if (content) {
+      setInputContent('');
       handleSend(content, undefined);
     }
-  };
+  }, [inputContent, handleSend]);
 
-  /**
-   * This function is called when the user taps the image button.
-   */
-  const handleImageSend = async () => {
+  // --- CHANGE 2: `handleImageSend` now triggers the detection and confirmation flow ---
+  const handleImageSend = useCallback(async (imageUrl?: string) => {
     if (loading) return;
 
-    try {
-      // This will call either the REAL native module or your MOCK
-      const response = await ImagePicker.pickImage();
+    if (imageUrl) {
+      setShowImagePicker(false);
+      setLoading(true);
 
-      if (response.error) {
-        // Handle cases where the user cancels or an error occurs
-        console.error('Image picking failed:', response.error);
-        return;
+      try {
+        // Simulate API call to detect sensitive data
+        const detectionResult = await api.detectSensitiveData(imageUrl);
+
+        if (detectionResult.isSensitive) {
+          // If sensitive, set pending state to show confirmation UI
+          setPendingImage({
+            url: imageUrl,
+            bboxes: detectionResult.bboxes,
+            isSensitive: true,
+          });
+        } else {
+          // If not sensitive, send directly
+          handleSend('', imageUrl);
+        }
+      } catch (error) {
+        console.error("Detection failed:", error);
+        // Fallback: send the image directly if detection fails
+        handleSend('', imageUrl);
+      } finally {
+        setLoading(false);
       }
-
-      // We will use the image URI for display and upload.
-      // The backend will need to handle receiving a URL or base64 data.
-      if (response.uri || response.base64) {
-        // Let's assume the backend can now accept a base64 string.
-        // If you upload the file directly, the logic would be different.
-        const imageToSend = response.base64 
-          ? `data:image/jpeg;base64,${response.base64}` 
-          : response.uri;
-        
-        // The handleSend function will be updated to send this data
-        handleSend('', imageToSend);
-      }
-
-    } catch (err) {
-      console.error('An error occurred while picking the image:', err);
+    } else {
+      setShowImagePicker(true);
     }
+  }, [loading, handleSend]);
+
+  // --- CHANGE 3: New handlers for the confirmation prompt ---
+  const handleConfirmSend = useCallback(() => {
+    if (!pendingImage) return;
+    // User chose "Yes", send the original image
+    handleSend('', pendingImage.url);
+    setPendingImage(null); // Clear pending state
+  }, [pendingImage, handleSend]);
+
+  const handleCancelSend = useCallback(() => {
+    // User chose "No", just clear the state
+    setPendingImage(null);
+  }, []);
+
+
+  // --- CHANGE 4: A new component to render the confirmation UI ---
+  const ImageConfirmationPrompt = () => {
+    if (!pendingImage) return null;
+
+    // Assuming the preview image has a fixed size for bbox calculation
+    const PREVIEW_WIDTH = 300;
+    const PREVIEW_HEIGHT = 150;
+
+    return (
+      <view className="p-4 pt-2 flex-shrink-0 flex flex-col" style={{ backgroundColor: '#ffffff', borderTop: '1px solid #e0e0e0' }}>
+        <text className="text-sm font-bold text-center mb-2" style={{ color: '#333333' }}>
+          Sensitive data detected. Send anyway?
+        </text>
+        <view className="relative rounded-lg overflow-hidden border border-gray-300 mx-auto" style={{ width: `${PREVIEW_WIDTH}px`, height: `${PREVIEW_HEIGHT}px` }}>
+          <image
+            src={pendingImage.url}
+            className="w-full h-full object-fit"
+          />
+
+          {pendingImage.bboxes.map((bbox, index) => {
+            const [x1, y1, x2, y2] = bbox;
+            const width = x2 - x1;
+            const height = y2 - y1;
+            return (
+              <view
+                key={index}
+                className="absolute rounded-md"
+                style={{
+                  left: `${x1}px`,
+                  top: `${y1}px`,
+                  width: `${width}px`,
+                  height: `${height}px`,
+                  backgroundColor: 'rgba(255, 255, 255, 0.4)',
+                  backdropFilter: 'blur(100px)', // This creates the blur effect
+                }}
+              />
+            );
+          })}
+        </view>
+        <view className="flex flex-row gap-3 mt-3">
+          <view
+            className="flex-1 h-10 rounded-full flex justify-center items-center"
+            style={{ backgroundColor: '#28a745' }}
+            bindtap={handleConfirmSend}
+          >
+            <text className="text-base font-bold" style={{ color: '#ffffff' }}>Yes, Send</text>
+          </view>
+          <view
+            className="flex-1 h-10 rounded-full flex justify-center items-center"
+            style={{ backgroundColor: '#dc3545' }}
+            bindtap={handleCancelSend}
+          >
+            <text className="text-base font-bold" style={{ color: '#ffffff' }}>No, Cancel</text>
+          </view>
+        </view>
+      </view>
+    );
   };
 
   return (
-    <view style={{
-      width: '100%',
-      height: '100%',
-      backgroundColor: '#f0f0f0'
-    }}>
-      {/* Header */}
-      <view style={{
-        height: '100px',
-        backgroundColor: '#007AFF',
-        padding: '20px',
-        paddingTop: '40px'
-      }}>
-        <view style={{
-          display: 'flex',
-          flexDirection: 'row',
-          alignItems: 'center',
-          gap: '16px'
-        }}>
-          <view
-            style={{
-              width: '40px',
-              height: '40px',
-              backgroundColor: 'rgba(255, 255, 255, 0.2)',
-              borderRadius: '20px',
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center'
-            }}
-            bindtap={onBack}
-          >
-            <text style={{ color: '#ffffff', fontSize: '18px' }}>←</text>
+    <view
+      className="flex flex-col w-full h-full"
+      style={{
+        backgroundColor: '#f0f0f0',
+        paddingBottom: isKeyboardVisible ? '270px' : '0px',
+        transition: 'padding-bottom 0.3s cubic-bezier(0.25, 0.1, 0.25, 1)',
+      }}
+    >
+      {/* Header and Message List (no changes) */}
+      <view className="h-25 px-5 pt-10 pb-5" style={{ backgroundColor: '#007AFF' }}>
+        <view className="flex flex-row items-center gap-4">
+          <view className="w-10 h-10 rounded-full flex justify-center items-center" style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }} bindtap={onBack}>
+            <text className="text-lg" style={{ color: '#ffffff' }}>←</text>
           </view>
-
-          <view style={{ flex: 1 }}>
-            <text style={{
-              color: '#ffffff',
-              fontSize: '18px',
-              fontWeight: 'bold'
-            }}>
-              @{chat.username}
-            </text>
-            <text style={{
-              color: 'rgba(255, 255, 255, 0.8)',
-              fontSize: '12px'
-            }}>
-              Online
-            </text>
+          <view className="flex-1">
+            <text className="text-lg font-bold" style={{ color: '#ffffff' }}>@{chat.username}</text>
+            <text className="text-xs" style={{ color: 'rgba(255, 255, 255, 0.8)' }}>Online</text>
           </view>
         </view>
       </view>
+      <list className="flex-1 w-full p-2">
+        {messages.map((message) => (
+          <list-item key={message.id} item-key={message.id}>
+            <view className={`p-1 px-2 flex flex-row ${message.username === currentUser ? 'justify-end' : 'justify-start'}`}>
+              <view className={`max-w-3/4 rounded-2xl ${message.username === currentUser ? 'border-none' : 'border border-gray-200'}`} style={{ backgroundColor: message.username === currentUser ? '#007AFF' : '#ffffff', padding: message.imageUrl ? '4px' : '14px 16px', minHeight: message.imageUrl ? 'auto' : '40px' }}>
+                {message.imageUrl ? (
+                  <image src={message.imageUrl} className="rounded-xl" style={{ width: '200px', height: '150px', objectFit: 'cover' }} auto-size={false} />
+                ) : (
+                  <text className="text-base" style={{ color: message.username === currentUser ? '#ffffff' : '#333333' }}>{message.content}</text>
+                )}
+              </view>
+            </view>
+          </list-item>
+        ))}
+      </list>
 
-      {/* Messages */}
-      <view style={{ flex: 1, padding: '8px' }}>
-        <list style={{
-          width: '100%',
-          height: '100%',
-          paddingBottom: '100px'
-        }}>
-          {messages.map((message) => (
-            <list-item key={message.id} item-key={message.id}>
-              <view style={{
-                padding: '4px 8px',
-                display: 'flex',
-                flexDirection: 'row',
-                justifyContent: message.username === currentUser ? 'flex-end' : 'flex-start'
-              }}>
-                <view style={{
-                  maxWidth: '75%',
-                  backgroundColor: message.username === currentUser ? '#007AFF' : '#ffffff',
-                  borderRadius: '16px',
-                  padding: message.imageUrl ? '4px' : '12px 16px',
-                  border: message.username === currentUser ? 'none' : '1px solid #e0e0e0'
-                }}>
-                  {message.imageUrl ? (
-                    <image
-                      src={message.imageUrl}
-                      style={{
-                        width: '200px',
-                        height: '150px',
-                        borderRadius: '12px'
-                      }}
-                    />
-                  ) : (
-                    <text style={{
-                      color: message.username === currentUser ? '#ffffff' : '#333333',
-                      fontSize: '15px'
-                    }}>
-                      {message.content}
-                    </text>
-                  )}
+      {pendingImage ? <ImageConfirmationPrompt /> : (
+        <view className="p-4 pb-6 flex-shrink-0 relative" style={{ backgroundColor: '#f0f0f0' }}>
+          <view className="rounded-full p-2 border border-gray-200 flex flex-row items-center gap-2" style={{ backgroundColor: '#ffffff' }}>
+            <view className="w-9 h-9 rounded-full flex justify-center items-center" style={{ backgroundColor: loading ? '#cccccc' : '#f0f0f0' }} bindtap={!loading ? () => handleImageSend() : undefined}>
+              <text className="text-base">📷</text>
+            </view>
+            <input value={inputContent} placeholder="Type a message..." bindinput={(e: { detail: { value: string } }) => setInputContent(e.detail.value)} bindfocus={() => setIsKeyboardVisible(true)} bindblur={() => setIsKeyboardVisible(false)} className="flex-1 h-10 border-none outline-none text-base px-3 py-2" style={{ backgroundColor: 'transparent' }} />
+            <view className="w-9 h-9 rounded-full flex justify-center items-center" style={{ backgroundColor: (inputContent.trim() && !loading) ? '#007AFF' : '#f0f0f0' }} bindtap={(inputContent.trim() && !loading) ? handleTextSend : undefined}>
+              <text className="text-base font-bold" style={{ color: (inputContent.trim() && !loading) ? '#ffffff' : '#999999' }}>{loading ? '⏳' : '↑'}</text>
+            </view>
+          </view>
+          {showImagePicker && (
+            <view className="absolute left-4 right-4 rounded-xl p-4 border border-gray-200 max-h-75" style={{ backgroundColor: '#ffffff', bottom: '80px', zIndex: 1000 }}>
+              <view className="flex flex-row justify-between items-center mb-4">
+                <text className="text-base font-bold" style={{ color: '#333333' }}>Select Image</text>
+                <view className="w-8 h-8 rounded-full flex justify-center items-center" style={{ backgroundColor: '#f0f0f0' }} bindtap={() => setShowImagePicker(false)}>
+                  <text className="text-lg" style={{ color: '#666666' }}>×</text>
                 </view>
               </view>
-            </list-item>
-          ))}
-        </list>
-      </view>
-
-      {/* Input Bar */}
-      <view style={{
-        position: 'absolute',
-        left: '0px',
-        right: '0px',
-        bottom: '20px',
-        padding: '0 16px'
-      }}>
-        <view style={{
-          backgroundColor: '#ffffff',
-          borderRadius: '24px',
-          padding: '8px',
-          border: '1px solid #e0e0e0'
-        }}>
-          <view style={{
-            display: 'flex',
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: '8px'
-          }}>
-            {/* Image Button */}
-            <view
-              style={{
-                width: '36px',
-                height: '36px',
-                borderRadius: '18px',
-                backgroundColor: loading ? '#cccccc' : '#f0f0f0',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center'
-              }}
-              bindtap={!loading ? handleImageSend : undefined}
-            >
-              <text style={{ fontSize: '16px' }}>📷</text>
+              <scroll-view className="h-50">
+                <view className="flex flex-row flex-wrap gap-2">
+                  {SAMPLE_IMAGES.map((imageUrl, index) => (
+                    <view key={index} className="rounded-lg overflow-hidden border border-gray-200" style={{ width: 'calc(33.33% - 8px)', aspectRatio: '1' }} bindtap={() => handleImageSend(imageUrl)}>
+                      <image src={imageUrl} className="w-full h-full object-cover" />
+                    </view>
+                  ))}
+                </view>
+              </scroll-view>
             </view>
-
-            <input
-              value={inputContent}
-              placeholder="Type a message..."
-              bindinput={(e: { detail: { value: string } }) => setInputContent(e.detail.value)}
-              style={{
-                flex: 1,
-                height: '40px',
-                border: 'none',
-                outline: 'none',
-                fontSize: '15px',
-                padding: '10px 12px'
-              }}
-            />
-
-            {/* Send Button */}
-            <view
-              style={{
-                width: '36px',
-                height: '36px',
-                borderRadius: '18px',
-                backgroundColor: (inputContent.trim() && !loading) ? '#007AFF' : '#f0f0f0',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center'
-              }}
-              bindtap={(inputContent.trim() && !loading) ? handleTextSend : undefined}
-            >
-              <text style={{
-                color: (inputContent.trim() && !loading) ? '#ffffff' : '#999999',
-                fontSize: '16px',
-                fontWeight: 'bold'
-              }}>
-                {loading ? '⏳' : '↑'}
-              </text>
-            </view>
-          </view>
+          )}
         </view>
-      </view>
+      )}
     </view>
   );
 };
@@ -928,12 +743,10 @@ export const App = (props: { onRender?: () => void }) => {
   const [selectedChatId, setSelectedChatId] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
 
-  // Initialize on render
   useEffect(() => {
     console.log('Lynx Chat App initialized');
     props.onRender?.();
 
-    // Check for existing user
     const savedProfile = Storage.getItem('userProfile');
 
     if (savedProfile?.username) {
@@ -972,7 +785,6 @@ export const App = (props: { onRender?: () => void }) => {
   const handleAddChat = useCallback(async (username: string) => {
     try {
       await api.createChat(currentUser, username);
-      // Reload chats to get the new chat
       await loadUserChats(currentUser);
       setCurrentPage('chatList');
     } catch (err) {
@@ -1011,7 +823,6 @@ export const App = (props: { onRender?: () => void }) => {
 
   const selectedChat = chats.find(chat => chat.id === selectedChatId);
 
-  // Page routing
   switch (currentPage) {
     case 'setup':
       return <UsernameSetupPage onComplete={handleUsernameComplete} />;

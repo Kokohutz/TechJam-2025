@@ -29,6 +29,11 @@ export default defineConfig({
     }),
   ],
   environments: {
+    web: {
+      output: {
+        assetPrefix: '/',
+      },
+    },
     lynx: {},
   },
 })
