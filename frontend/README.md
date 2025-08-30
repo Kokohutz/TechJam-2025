@@ -1,26 +1,3 @@
-<<<<<<< HEAD
-## Rspeedy project
-
-This is a ReactLynx project bootstrapped with `create-rspeedy`.
-
-## Getting Started
-
-First, install the dependencies:
-
-```bash
-pnpm install
-```
-
-Then, run the development server:
-
-```bash
-pnpm run dev
-```
-
-Scan the QRCode in the terminal with your LynxExplorer App to see the result.
-
-You can start editing the page by modifying `src/App.tsx`. The page auto-updates as you edit the file.
-=======
 # 2025 TechJam Hackathon
 
 ## Getting Started
@@ -261,4 +238,3 @@ git push origin --delete old-branch-name
 1. Submit a pull request
 
 Thank you for contributing to our project! 🚀
->>>>>>> 1a4483e4dff10c7f566dbbb84fa7f4691938b80e
