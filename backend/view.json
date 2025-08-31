@@ -1,0 +1,623 @@
+[{
+        'bbox': [
+            160,
+            120,
+            1502,
+            269
+        ],
+        'relative_bbox': [
+            0.05333333333333334,
+            0.06342494714587738,
+            0.5006666666666667,
+            0.14217758985200846
+        ],
+        'text': 'MASSACHUSETTS',
+        'score': 0.9994343519210815,
+        'type': 'rec_box',
+        'original_text': 'MASSACHUSETTS',
+        'encrypted_text': 'MASSACHUSETTS',
+        'is_sensitive': False,
+        'sensitive_entities': [],
+        'encrypted_words': []
+    },
+    {
+        'bbox': [
+            1547,
+            128,
+            1767,
+            187
+        ],
+        'relative_bbox': [
+            0.5156666666666667,
+            0.06765327695560254,
+            0.589,
+            0.09883720930232558
+        ],
+        'text': 'DRIVER',
+        'score': 0.9957333207130432,
+        'type': 'rec_box',
+        'original_text': 'DRIVER',
+        'encrypted_text': 'DRIVER',
+        'is_sensitive': False,
+        'sensitive_entities': [],
+        'encrypted_words': []
+    },
+    {
+        'bbox': [
+            1548,
+            204,
+            1792,
+            262
+        ],
+        'relative_bbox': [
+            0.516,
+            0.10782241014799154,
+            0.5973333333333334,
+            0.13847780126849896
+        ],
+        'text': 'LICENSE',
+        'score': 0.9988389611244202,
+        'type': 'rec_box',
+        'original_text': 'LICENSE',
+        'encrypted_text': 'LICENSE',
+        'is_sensitive': False,
+        'sensitive_entities': [],
+        'encrypted_words': []
+    },
+    {
+        'bbox': [
+            1471,
+            454,
+            1632,
+            511
+        ],
+        'relative_bbox': [
+            0.49033333333333334,
+            0.23995771670190275,
+            0.544,
+            0.2700845665961945
+        ],
+        'text': '4a ISS',
+        'score': 0.9263922572135925,
+        'type': 'rec_box',
+        'original_text': '4a ISS',
+        'encrypted_text': '4a ISS',
+        'is_sensitive': False,
+        'sensitive_entities': [],
+        'encrypted_words': []
+    },
+    {
+        'bbox': [
+            2093,
+            457,
+            2382,
+            505
+        ],
+        'relative_bbox': [
+            0.6976666666666667,
+            0.24154334038054967,
+            0.794,
+            0.26691331923890066
+        ],
+        'text': '4dNUMBER',
+        'score': 0.9918185472488403,
+        'type': 'rec_box',
+        'original_text': '4dNUMBER',
+        'encrypted_text': '4dNUMBER',
+        'is_sensitive': False,
+        'sensitive_entities': [],
+        'encrypted_words': []
+    },
+    {
+        'bbox': [
+            1542,
+            504,
+            2014,
+            593
+        ],
+        'relative_bbox': [
+            0.514,
+            0.266384778012685,
+            0.6713333333333333,
+            0.3134249471458774
+        ],
+        'text': '03/18/2018',
+        'score': 0.9996797442436218,
+        'type': 'rec_box',
+        'original_text': '03/18/2018',
+        'encrypted_text': '03/18/2018',
+        'is_sensitive': False,
+        'sensitive_entities': [],
+        'encrypted_words': []
+    },
+    {
+        'bbox': [
+            2165,
+            505,
+            2806,
+            587
+        ],
+        'relative_bbox': [
+            0.7216666666666667,
+            0.26691331923890066,
+            0.9353333333333333,
+            0.3102536997885835
+        ],
+        'text': '736HDV7874JSB',
+        'score': 0.9996442198753357,
+        'type': 'rec_box',
+        'original_text': '736HDV7874JSB',
+        'encrypted_text': '736HDV7874JSB',
+        'is_sensitive': False,
+        'sensitive_entities': [],
+        'encrypted_words': []
+    },
+    {
+        'bbox': [
+            1467,
+            621,
+            1649,
+            681
+        ],
+        'relative_bbox': [
+            0.489,
+            0.32822410147991543,
+            0.5496666666666666,
+            0.35993657505285415
+        ],
+        'text': '4b EXP',
+        'score': 0.9771071076393127,
+        'type': 'rec_box',
+        'original_text': '4b EXP',
+        'encrypted_text': '4b EXP',
+        'is_sensitive': False,
+        'sensitive_entities': [],
+        'encrypted_words': []
+    },
+    {
+        'bbox': [
+            2114,
+            624,
+            2284,
+            681
+        ],
+        'relative_bbox': [
+            0.7046666666666667,
+            0.3298097251585624,
+            0.7613333333333333,
+            0.35993657505285415
+        ],
+        'text': '3 DOB',
+        'score': 0.9197866320610046,
+        'type': 'rec_box',
+        'original_text': '3 DOB',
+        'encrypted_text': '3 DOB',
+        'is_sensitive': False,
+        'sensitive_entities': [],
+        'encrypted_words': []
+    },
+    {
+        'bbox': [
+            136,
+            658,
+            199,
+            1143
+        ],
+        'relative_bbox': [
+            0.04533333333333334,
+            0.3477801268498943,
+            0.06633333333333333,
+            0.604122621564482
+        ],
+        'text': '736HDV7874JSB',
+        'score': 0.9995608925819397,
+        'type': 'rec_box',
+        'original_text': '736HDV7874JSB',
+        'encrypted_text': '736HDV7874JSB',
+        'is_sensitive': False,
+        'sensitive_entities': [],
+        'encrypted_words': []
+    },
+    {
+        'bbox': [
+            1543,
+            676,
+            2012,
+            762
+        ],
+        'relative_bbox': [
+            0.5143333333333333,
+            0.3572938689217759,
+            0.6706666666666666,
+            0.40274841437632136
+        ],
+        'text': '01/20/2028',
+        'score': 0.9997526407241821,
+        'type': 'rec_box',
+        'original_text': '01/20/2028',
+        'encrypted_text': '01/20/2028',
+        'is_sensitive': False,
+        'sensitive_entities': [],
+        'encrypted_words': []
+    },
+    {
+        'bbox': [
+            2162,
+            672,
+            2625,
+            765
+        ],
+        'relative_bbox': [
+            0.7206666666666667,
+            0.35517970401691334,
+            0.875,
+            0.4043340380549683
+        ],
+        'text': '03/18/2001',
+        'score': 0.9997062683105469,
+        'type': 'rec_box',
+        'original_text': '03/18/2001',
+        'encrypted_text': '03/18/2001',
+        'is_sensitive': False,
+        'sensitive_entities': [],
+        'encrypted_words': []
+    },
+    {
+        'bbox': [
+            1492,
+            788,
+            1707,
+            848
+        ],
+        'relative_bbox': [
+            0.49733333333333335,
+            0.4164904862579281,
+            0.569,
+            0.44820295983086683
+        ],
+        'text': '9 CLASS',
+        'score': 0.9132968187332153,
+        'type': 'rec_box',
+        'original_text': '9 CLASS',
+        'encrypted_text': '9 CLASS',
+        'is_sensitive': False,
+        'sensitive_entities': [],
+        'encrypted_words': []
+    },
+    {
+        'bbox': [
+            1769,
+            794,
+            1966,
+            843
+        ],
+        'relative_bbox': [
+            0.5896666666666667,
+            0.41966173361522197,
+            0.6553333333333333,
+            0.4455602536997886
+        ],
+        'text': '12 REST',
+        'score': 0.9678978323936462,
+        'type': 'rec_box',
+        'original_text': '12 REST',
+        'encrypted_text': '12 REST',
+        'is_sensitive': False,
+        'sensitive_entities': [],
+        'encrypted_words': []
+    },
+    {
+        'bbox': [
+            2096,
+            795,
+            2275,
+            844
+        ],
+        'relative_bbox': [
+            0.6986666666666667,
+            0.4201902748414376,
+            0.7583333333333333,
+            0.44608879492600423
+        ],
+        'text': 'Oa END',
+        'score': 0.9337370991706848,
+        'type': 'rec_box',
+        'original_text': 'Oa END',
+        'encrypted_text': 'Oa END',
+        'is_sensitive': False,
+        'sensitive_entities': [],
+        'encrypted_words': []
+    },
+    {
+        'bbox': [
+            1840,
+            847,
+            2070,
+            921
+        ],
+        'relative_bbox': [
+            0.6133333333333333,
+            0.4476744186046512,
+            0.69,
+            0.4867864693446089
+        ],
+        'text': 'NONE',
+        'score': 0.9992914199829102,
+        'type': 'rec_box',
+        'original_text': 'NONE',
+        'encrypted_text': 'NONE',
+        'is_sensitive': False,
+        'sensitive_entities': [],
+        'encrypted_words': []
+    },
+    {
+        'bbox': [
+            2170,
+            850,
+            2398,
+            921
+        ],
+        'relative_bbox': [
+            0.7233333333333334,
+            0.4492600422832981,
+            0.7993333333333333,
+            0.4867864693446089
+        ],
+        'text': 'NONE',
+        'score': 0.9996210336685181,
+        'type': 'rec_box',
+        'original_text': 'NONE',
+        'encrypted_text': 'NONE',
+        'is_sensitive': False,
+        'sensitive_entities': [],
+        'encrypted_words': []
+    },
+    {
+        'bbox': [
+            1219,
+            978,
+            1631,
+            1091
+        ],
+        'relative_bbox': [
+            0.4063333333333333,
+            0.5169133192389006,
+            0.5436666666666666,
+            0.5766384778012685
+        ],
+        'text': 'MARIA',
+        'score': 0.9995092153549194,
+        'type': 'rec_box',
+        'original_text': 'MARIA',
+        'encrypted_text': 'MARIA',
+        'is_sensitive': False,
+        'sensitive_entities': [],
+        'encrypted_words': []
+    },
+    {
+        'bbox': [
+            1214,
+            1108,
+            1531,
+            1187
+        ],
+        'relative_bbox': [
+            0.4046666666666667,
+            0.5856236786469344,
+            0.5103333333333333,
+            0.6273784355179705
+        ],
+        'text': 'GARCIA',
+        'score': 0.9983318448066711,
+        'type': 'rec_box',
+        'original_text': 'GARCIA',
+        'encrypted_text': 'GARCIA',
+        'is_sensitive': False,
+        'sensitive_entities': [],
+        'encrypted_words': []
+    },
+    {
+        'bbox': [
+            1215,
+            1210,
+            1754,
+            1296
+        ],
+        'relative_bbox': [
+            0.405,
+            0.6395348837209303,
+            0.5846666666666667,
+            0.6849894291754757
+        ],
+        'text': '100 MARKET',
+        'score': 0.980748176574707,
+        'type': 'rec_box',
+        'original_text': '100 MARKET',
+        'encrypted_text': '100 MARKET',
+        'is_sensitive': False,
+        'sensitive_entities': [],
+        'encrypted_words': []
+    },
+    {
+        'bbox': [
+            1766,
+            1216,
+            2082,
+            1290
+        ],
+        'relative_bbox': [
+            0.5886666666666667,
+            0.642706131078224,
+            0.694,
+            0.6818181818181818
+        ],
+        'text': 'STREET',
+        'score': 0.9994257092475891,
+        'type': 'rec_box',
+        'original_text': 'STREET',
+        'encrypted_text': 'STREET',
+        'is_sensitive': False,
+        'sensitive_entities': [],
+        'encrypted_words': []
+    },
+    {
+        'bbox': [
+            1212,
+            1320,
+            1630,
+            1404
+        ],
+        'relative_bbox': [
+            0.404,
+            0.6976744186046512,
+            0.5433333333333333,
+            0.7420718816067653
+        ],
+        'text': 'BIGTOWN',
+        'score': 0.998911440372467,
+        'type': 'rec_box',
+        'original_text': 'BIGTOWN',
+        'encrypted_text': 'BIGTOWN',
+        'is_sensitive': False,
+        'sensitive_entities': [],
+        'encrypted_words': []
+    },
+    {
+        'bbox': [
+            1664,
+            1318,
+            2110,
+            1411
+        ],
+        'relative_bbox': [
+            0.5546666666666666,
+            0.6966173361522199,
+            0.7033333333333334,
+            0.7457716701902748
+        ],
+        'text': 'MA,
+        02801 ', '
+        score ': 0.9374954700469971, '
+        type ': '
+        rec_box ', '
+        original_text ': '
+        MA,
+        02801 ', '
+        encrypted_text ': '
+        MA,
+        02801 ', '
+        is_sensitive ': False, '
+        sensitive_entities ': [], '
+        encrypted_words ': []
+    },
+    {
+        'bbox': [
+            1130,
+            1478,
+            1502,
+            1573
+        ],
+        'relative_bbox': [
+            0.37666666666666665,
+            0.781183932346723,
+            0.5006666666666667,
+            0.8313953488372093
+        ],
+        'text': '18 EYEs BLK',
+        'score': 0.962733268737793,
+        'type': 'rec_box',
+        'original_text': '18 EYEs BLK',
+        'encrypted_text': '18 EYEs BLK',
+        'is_sensitive': False,
+        'sensitive_entities': [],
+        'encrypted_words': []
+    },
+    {
+        'bbox': [
+            1132,
+            1569,
+            1377,
+            1660
+        ],
+        'relative_bbox': [
+            0.37733333333333335,
+            0.8292811839323467,
+            0.459,
+            0.8773784355179705
+        ],
+        'text': '15 SEx F',
+        'score': 0.9119188785552979,
+        'type': 'rec_box',
+        'original_text': '15 SEx F',
+        'encrypted_text': '15 SEx F',
+        'is_sensitive': False,
+        'sensitive_entities': [],
+        'encrypted_words': []
+    },
+    {
+        'bbox': [
+            208,
+            1586,
+            590,
+            1713
+        ],
+        'relative_bbox': [
+            0.06933333333333333,
+            0.8382663847780126,
+            0.19666666666666666,
+            0.9053911205073996
+        ],
+        'text': 'Maria',
+        'score': 0.9476153254508972,
+        'type': 'rec_box',
+        'original_text': 'Maria',
+        'encrypted_text': 'Maria',
+        'is_sensitive': False,
+        'sensitive_entities': [],
+        'encrypted_words': []
+    },
+    {
+        'bbox': [
+            607,
+            1586,
+            1032,
+            1724
+        ],
+        'relative_bbox': [
+            0.20233333333333334,
+            0.8382663847780126,
+            0.344,
+            0.9112050739957717
+        ],
+        'text': 'Garcia',
+        'score': 0.9414058327674866,
+        'type': 'rec_box',
+        'original_text': 'Garcia',
+        'encrypted_text': 'Garcia',
+        'is_sensitive': False,
+        'sensitive_entities': [],
+        'encrypted_words': []
+    },
+    {
+        'bbox': [
+            1451,
+            1572,
+            1803,
+            1661
+        ],
+        'relative_bbox': [
+            0.4836666666666667,
+            0.8308668076109936,
+            0.601,
+            0.877906976744186
+        ],
+        'text': '15 HGT4-6"',
+        'score': 0.9636281132698059,
+        'type': 'rec_box',
+        'original_text': '15 HGT4-6"',
+        'encrypted_text': '15 HGT4-6"',
+        'is_sensitive': False,
+        'sensitive_entities': [],
+        'encrypted_words': []
+    }, { 'bbox': [2245, 1602, 2764, 1698], 'relative_bbox': [0.7483333333333333, 0.846723044397463, 0.9213333333333333, 0.8974630021141649], 'text': '03/18/2001', 'score': 0.9998506307601929, 'type': 'rec_box', 'original_text': '03/18/2001', 'encrypted_text': '03/18/2001', 'is_sensitive': False, 'sensitive_entities': [], 'encrypted_words': [] }, { 'bbox': [1165, 1681, 1611, 1737], 'relative_bbox': [0.3883333333333333, 0.888477801268499, 0.537, 0.9180761099365751], 'text': '5 DD 03/12/2019', 'score': 0.9942768216133118, 'type': 'rec_box', 'original_text': '5 DD 03/12/2019', 'encrypted_text': '5 DD 03/12/2019', 'is_sensitive': False, 'sensitive_entities': [], 'encrypted_words': [] }, { 'bbox': [1692, 1680, 2103, 1737], 'relative_bbox': [0.564, 0.8879492600422833, 0.701, 0.9180761099365751], 'text': 'REV 03/12/2017', 'score': 0.9674473404884338, 'type': 'rec_box', 'original_text': 'REV 03/12/2017', 'encrypted_text': 'REV 03/12/2017', 'is_sensitive': False, 'sensitive_entities': [], 'encrypted_words': [] }
+]

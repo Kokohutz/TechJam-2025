@@ -30,7 +30,7 @@ const SAMPLE_IMAGES = [
   'https://s3.ap-southeast-1.amazonaws.com/textract-public-assets-ap-southeast-1/DLRegular.png',
   'https://s3.ap-southeast-1.amazonaws.com/textract-public-assets-ap-southeast-1/Passport.png',
   'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ38knCnD663lAFB8HFviaRm8F_FpzetB_gdQ&s',
-  'https://www.shutterstock.com/image-photo/man-holds-credit-card-he-600nw-2476576361.jpg',
+  // 'https://www.shutterstock.com/image-photo/man-holds-credit-card-he-600nw-2476576361.jpg',
 ];
 
 // API Configuration
@@ -79,11 +79,7 @@ const api = {
     const response = await lynx.fetch(`${API_BASE_URL}/chats/${chatId}/messages`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        content,
-        sender,
-        imageUrl: imageData  // Changed from imageData to imageUrl
-      })
+      body: JSON.stringify({ content, sender, imageUrl: imageData })
     });
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || 'Failed to send message');
@@ -105,26 +101,47 @@ const api = {
   },
 
   async detectSensitiveData(imageUrl: string) {
-    console.log('Detecting sensitive data for:', imageUrl);
-    await new Promise(resolve => setTimeout(resolve, 800));
+    // This function now calls your backend's analysis endpoint
+    const response = await lynx.fetch(`${API_BASE_URL}/ocr/analyze`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ imageUrl }) // Send imageUrl in the body
+    });
 
-    // BBoxes are now relative [x1, y1, x2, y2] as percentages (0.0 to 1.0)
-    const sensitiveDataMap: Record<string, number[][]> = {
-      'https://s3.ap-southeast-1.amazonaws.com/textract-public-assets-ap-southeast-1/DLRegular.png': [
-        [0.05, 0.15, 0.60, 0.30], // Relative bbox for name/address
-        [0.05, 0.40, 0.75, 0.55]
-      ],
-      'https://www.shutterstock.com/image-photo/man-holds-credit-card-he-600nw-2476576361.jpg': [
-        [0.35, 0.45, 0.85, 0.65] // Relative bbox for credit card numbers
-      ],
-    };
+    const data = await response.json();
+    if (!response.ok || !data.success) {
+      throw new Error(data.detail || data.error || 'Failed to analyze image');
+    }
 
-    const bboxes = sensitiveDataMap[imageUrl] || [];
-    return {
-      isSensitive: bboxes.length > 0,
-      bboxes: bboxes,
-    };
+    const results = data.analysis.is_sensitive;
+    // if (!Array.isArray(resultsArray)) {
+    //   return { isSensitive: false, bboxes: [] };
+    // }
+
+    // const sensitiveBboxes = resultsArray
+    //   .filter((item: any) => item.is_sensitive === true)
+    //   .map((item: any) => item.relative_bbox);
+
+
+    // const finalResult = {
+    //   isSensitive: results,
+    //   // bboxes: sensitiveBboxes,
+    // };
+
+
+    return results;
   },
+
+  async decryptMessage(chatId: string, messageId: string) {
+    const response = await lynx.fetch(`${API_BASE_URL}/chats/${chatId}/messages/decrypt/${messageId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      // body: JSON.stringify({ msg_id: messageId })
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || 'Failed to decrypt message');
+    return data;
+  }
 };
 
 // Simple in-memory storage for testing
@@ -469,11 +486,14 @@ const ChatPage = ({
   const [showImagePicker, setShowImagePicker] = useState<boolean>(false);
   const [isKeyboardVisible, setIsKeyboardVisible] = useState<boolean>(false);
 
+  const [error, setError] = useState<string>('');
+
   // --- CHANGE 1: New state to manage the image confirmation flow ---
   const [pendingImage, setPendingImage] = useState<{
     url: string;
-    bboxes: number[][];
+    // bboxes: number[][];
     isSensitive: boolean;
+    blurred?: boolean;
   } | null>(null);
 
 
@@ -554,7 +574,6 @@ const ChatPage = ({
     }
   }, [inputContent, handleSend]);
 
-  // --- CHANGE 2: `handleImageSend` now triggers the detection and confirmation flow ---
   const handleImageSend = useCallback(async (imageUrl?: string) => {
     if (loading) return;
 
@@ -563,24 +582,22 @@ const ChatPage = ({
       setLoading(true);
 
       try {
-        // Simulate API call to detect sensitive data
         const detectionResult = await api.detectSensitiveData(imageUrl);
-
-        if (detectionResult.isSensitive) {
-          // If sensitive, set pending state to show confirmation UI
+        // const detectionResult = true
+        if (detectionResult) {
           setPendingImage({
             url: imageUrl,
-            bboxes: detectionResult.bboxes,
+            // bboxes: detectionResult.bboxes,
             isSensitive: true,
+            blurred: true
           });
         } else {
-          // If not sensitive, send directly
           handleSend('', imageUrl);
         }
-      } catch (error) {
-        console.error("Detection failed:", error);
-        // Fallback: send the image directly if detection fails
-        handleSend('', imageUrl);
+      } catch (error: any) {
+        handleSend('', imageUrl); // Fallback: send the image directly if detection fails
+        // setError(error.message);
+        // setError(detectionResult);
       } finally {
         setLoading(false);
       }
@@ -589,58 +606,100 @@ const ChatPage = ({
     }
   }, [loading, handleSend]);
 
-  // --- CHANGE 3: New handlers for the confirmation prompt ---
   const handleConfirmSend = useCallback(() => {
     if (!pendingImage) return;
-    // User chose "Yes", send the original image
     handleSend('', pendingImage.url);
     setPendingImage(null); // Clear pending state
   }, [pendingImage, handleSend]);
 
   const handleCancelSend = useCallback(() => {
-    // User chose "No", just clear the state
     setPendingImage(null);
   }, []);
 
 
-  // --- CHANGE 4: A new component to render the confirmation UI ---
+  const handleDecryptMessage = useCallback(async (msg_id: string, user_check: boolean) => {
+    if (loading) return;
+    if (!user_check) return;
+
+    if (msg_id) {
+
+      try {
+        const detectionResult = await api.decryptMessage(chat.id, msg_id);
+        // messages
+        // setMessages(prev => {
+        //   const updated = [...prev, newMessage];
+        //   onUpdateChat(chat.id, updated);
+        //   return updated;
+        // });
+
+        // setMessages()
+
+      } catch (error: any) {
+        // setError(error.message);
+        setError(msg_id)
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      // setShowImagePicker(true);
+    }
+
+
+  }, []);
+
+  const handleDeblur = useCallback(() => {
+    setPendingImage(prev => {
+      if (!prev) {
+        return null;
+      }
+      return { ...prev, blurred: !prev.blurred };
+    });
+  }, []);
+
+
   const ImageConfirmationPrompt = () => {
     if (!pendingImage) return null;
 
-    // Assuming the preview image has a fixed size for bbox calculation
     const PREVIEW_WIDTH = 300;
     const PREVIEW_HEIGHT = 150;
 
     return (
-      <view className="p-4 pt-2 flex-shrink-0 flex flex-col" style={{ backgroundColor: '#ffffff', borderTop: '1px solid #e0e0e0' }}>
+      <view className="p-4 pt-2 flex-shrink-0 flex flex-col" style={{ backgroundColor: '#ffffff', borderTop: '1px solid #e0e0e0' }} bindtap={handleDeblur}>
         <text className="text-sm font-bold text-center mb-2" style={{ color: '#333333' }}>
           Sensitive data detected. Send anyway?
         </text>
-        <view className="relative rounded-lg overflow-hidden border border-gray-300 mx-auto" style={{ width: `${PREVIEW_WIDTH}px`, height: `${PREVIEW_HEIGHT}px` }}>
+        <view className="relative rounded-lg overflow-hidden border border-gray-300 mx-auto" style={{ width: `${PREVIEW_WIDTH}px`, height: `${PREVIEW_HEIGHT}px`, filter: `${pendingImage.blurred ? 'blur(4px)' : ''}` }}>
           <image
             src={pendingImage.url}
-            className="w-full h-full object-fit"
+            className="w-full h-full object-cover"
           />
 
-          {pendingImage.bboxes.map((bbox, index) => {
-            const [x1, y1, x2, y2] = bbox;
-            const width = x2 - x1;
-            const height = y2 - y1;
+          {/* Correctly map relative bboxes to absolute pixel values for UI */}
+          {/* {pendingImage.bboxes.map((bbox, index) => {
+            const [x1_rel, y1_rel, x2_rel, y2_rel] = bbox;
+
+            // Convert relative coordinates (0.0-1.0) to absolute pixels for positioning
+            const left = x1_rel * PREVIEW_WIDTH;
+            const top = y1_rel * PREVIEW_HEIGHT;
+            const width = (x2_rel - x1_rel) * PREVIEW_WIDTH;
+            const height = (y2_rel - y1_rel) * PREVIEW_HEIGHT;
+
             return (
               <view
                 key={index}
-                className="absolute rounded-md"
+                className="absolute rounded-sm"
                 style={{
-                  left: `${x1}px`,
-                  top: `${y1}px`,
+                  left: `${left}px`,
+                  top: `${top}px`,
                   width: `${width}px`,
                   height: `${height}px`,
-                  backgroundColor: 'rgba(255, 255, 255, 0.4)',
-                  backdropFilter: 'blur(100px)', // This creates the blur effect
+                  backgroundColor: 'rgba(255, 0, 0, 0.4)',
+                  backdropFilter: 'blur(8px)', // Use backdropFilter for a better blur effect
+                  // webkitBackdropFilter: 'blur(8px)',
                 }}
               />
             );
-          })}
+          })} */}
         </view>
         <view className="flex flex-row gap-3 mt-3">
           <view
@@ -683,10 +742,13 @@ const ChatPage = ({
           </view>
         </view>
       </view>
+
+      {/* <text className='text-5xl'>{error}</text> */}
+
       <list className="flex-1 w-full p-2">
         {messages.map((message) => (
-          <list-item key={message.id} item-key={message.id}>
-            <view className={`p-1 px-2 flex flex-row ${message.username === currentUser ? 'justify-end' : 'justify-start'}`}>
+          <list-item key={message.id} item-key={message.id} >
+            <view className={`p-1 px-2 flex flex-row ${message.username === currentUser ? 'justify-end' : 'justify-start'}`} bindtap={() => { handleDecryptMessage(message.id, message.username === currentUser) }}>
               <view className={`max-w-3/4 rounded-2xl ${message.username === currentUser ? 'border-none' : 'border border-gray-200'}`} style={{ backgroundColor: message.username === currentUser ? '#007AFF' : '#ffffff', padding: message.imageUrl ? '4px' : '14px 16px', minHeight: message.imageUrl ? 'auto' : '40px' }}>
                 {message.imageUrl ? (
                   <image src={message.imageUrl} className="rounded-xl" style={{ width: '200px', height: '150px', objectFit: 'cover' }} auto-size={false} />
@@ -698,6 +760,8 @@ const ChatPage = ({
           </list-item>
         ))}
       </list>
+
+      <text class='text-5xl'>{error}</text>
 
       {pendingImage ? <ImageConfirmationPrompt /> : (
         <view className="p-4 pb-6 flex-shrink-0 relative" style={{ backgroundColor: '#f0f0f0' }}>
